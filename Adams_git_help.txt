@@ -1,0 +1,16 @@
+You must make sure you are ‘CDed’ into your Open-Dispatch-Model
+
+Do this by typing cd (space) then dragging in the Open-Dispatch Model folder.
+
+IF YOU WANT TO GET THINGS
+git pull
+
+IF YOU WANT TO PUSH THING
+git status
+git add .
+(If git add . doesn’t work try git add —-all .)
+git commit -m “ENTER A MESSAGE HERE THAT IS MEANINGFUL! No, ‘made changes’ bs”
+
+(At this point all changes are still on your computer)
+
+git push (This will update the server so we can all see it.
