@@ -14,13 +14,15 @@ def inputFileArrayForName(filename):
 	# Gets the directory of this file (regardles of how executed)
 	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
 	inputdir = lvl_up(parentdir,'inputs')
+	fullfilepath = os.path.join(inputdir, filename)
+	print fullfilepath
 
 # http://stackoverflow.com/questions/13194489/python-change-given-directory-one-level-above-or-below
 def lvl_down(path):
     return os.path.split(path)[0]
 
 def lvl_up(path, up_dir):
-    return os.path.join(path, updir)
+    return os.path.join(path, up_dir)
 
 def importFile():
 
