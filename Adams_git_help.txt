@@ -16,3 +16,5 @@ git status  (should say “nothing to commit, working directory clean”)
 If it doesn’t say that exactly try git add -A . and committing again.
 
 git push (This will update the server so we can all see it.
+
+Just a tip: Press Apple-K to clear the terminal of text. Control-C, stops code.
