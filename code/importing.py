@@ -5,6 +5,8 @@ import argparse
 import os
 import os.path
 import csv
+from datetime import date, datetime, time, timedelta
+import dateutil.parser
 
 # Takes a file name and returns its data
 def inputFileArrayForName(filename):
@@ -15,7 +17,41 @@ def inputFileArrayForName(filename):
 	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
 	inputdir = lvl_up(parentdir,'inputs')
 	fullfilepath = os.path.join(inputdir, filename)
+	array =  excelToArray(fullfilepath)
+	convertLoadTableToList(array)
 	print fullfilepath
+
+def convertLoadTableToList(loadTable):
+
+	index = 0
+	header = []
+	intervals = []
+	for row in loadTable:
+		if index > 0:
+			timestamp = parse(row[0])
+			print timestamp
+			colIndex = 0
+			for col in row:
+				if colIndex > 0:
+					print int(float(header[colIndex]))
+					print timestamp.month
+					print timestamp.day
+					print timestamp.hour
+					newdate = datetime(year=int(float(header[colIndex])),month=timestamp.month,day=timestamp.day,hour=timestamp.hour)
+					colValue = 0
+					if len(col) > 0:
+						colValue = float(col)
+					intervals.append([newdate,colValue])
+				colIndex += 1
+		else:
+			header = row
+		index += 1
+
+	intervals.sort(key=lambda interval: interval[0])
+
+	for interval in intervals:
+		print interval
+	
 
 # http://stackoverflow.com/questions/13194489/python-change-given-directory-one-level-above-or-below
 def lvl_down(path):
@@ -77,11 +113,11 @@ def excelToArray(infilePath):
 		valuesArray = []
 		for col in range(0,s.ncols):
 			if s.cell(row,col).ctype == xlrd.XL_CELL_DATE:
-				try:
+				#try:
 					date_value = xlrd.xldate_as_tuple(s.cell_value(row,col),wb.datemode)
 					valuesArray.append(datetime(*date_value).strftime('%d-%b-%Y %H:%M:%S'))
-				except:
-					raise Exception('A dumb Excel date error occurred. Please convert to CSV')
+				#except:
+				#	raise Exception('A dumb Excel date error occurred. Please convert to CSV')
 			else:
 				valuesArray.append(stringAtCell(s,row,col))
 		outputArray.append(valuesArray)
@@ -99,6 +135,22 @@ def stringAtCell(sheet,row,col):
 	except:
 		print 'Cell '+str(row)+', '+ str(col)+' has value:'+valueStr+' is type: ' + str(sheet.cell(row,col).ctype)
 		raise Exception('String at Cell Failed!')
+
+def parse(dateStr):
+	# result = dateStr.find('to');
+	# if result > -1:
+	# 	dateStr = dateStr[:result-2]
+	
+	error = 0
+	formatArray = ['%Y-%m-%d %H:%M:%S','%m/%d/%Y %I:%M %p','%m/%d/%y %H:%M', '%m/%d/%Y %H:%M', '%d-%b-%Y %H:%M:%S']
+	for format in formatArray:
+		try:
+			return datetime.strptime(dateString, format)
+		except:
+			error += 1
+
+	return dateutil.parser.parse(dateStr)
+
 
 def printExcelArray(array):
 	for row in array:

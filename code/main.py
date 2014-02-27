@@ -1,7 +1,6 @@
 # System Libraries
 import csv
 import os
-from datetime import date, datetime, time, timedelta
 # Third-Party
 import xlrd
 # Our own modules
@@ -22,7 +21,7 @@ fuel_prices = ''
 # Load Forcasts File
 # Contains the load forecasts in MW
 # Headers: Timestamp, 2012,2013,2014 ...
-load_forcasts_name = 'Hourly_Load_Forcasts.xlsx'
+load_forcasts_name = 'Hourly_Load_Forecasts.xlsx'
 
 # All output files are in /ouputs
 # All outputs will have date appended to them to ensure no overwriting.
