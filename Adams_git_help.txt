@@ -7,8 +7,7 @@ git pull
 
 IF YOU WANT TO PUSH THING
 git status
-git add .
-(If git add . doesn’t work try git add —-all .)
+git add -A . 
 git commit -m “ENTER A MESSAGE HERE THAT IS MEANINGFUL! No, ‘made changes’ bs”
 
 (At this point all changes are still on your computer)
