@@ -10,8 +10,6 @@ import dateutil.parser
 
 # Takes a file name and returns its data
 def inputFileArrayForName(filename):
-	#infilePath = 
-	print os.getcwd()
 
 	# Gets the directory of this file (regardles of how executed)
 	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
@@ -19,7 +17,6 @@ def inputFileArrayForName(filename):
 	fullfilepath = os.path.join(inputdir, filename)
 	array =  excelToArray(fullfilepath)
 	convertLoadTableToList(array)
-	print fullfilepath
 
 def convertLoadTableToList(loadTable):
 
@@ -29,22 +26,14 @@ def convertLoadTableToList(loadTable):
 	for row in loadTable:
 		if index > 0:
 			timestamp = parse(row[0])
-			print timestamp
 			colIndex = 0
 			for col in row:
 				if colIndex > 0:
-					print int(float(header[colIndex]))
-					print timestamp.month
-					print timestamp.day
-					print timestamp.hour
 					newdate = ''
 					try:
 						newdate = datetime(year=int(float(header[colIndex])),month=timestamp.month,day=timestamp.day,hour=timestamp.hour)
 					except Exception, e:
-						print timestamp
 						newdate = datetime(year=int(float(header[colIndex])),month=3,day=1,hour=timestamp.hour)
-						print "INSIDE EXCEPTION "
-						print newdate
 
 					colValue = 0
 					if len(col) > 0:
@@ -56,9 +45,6 @@ def convertLoadTableToList(loadTable):
 		index += 1
 
 	intervals.sort(key=lambda interval: interval[0])
-
-	for interval in intervals:
-		print interval
 	
 
 # http://stackoverflow.com/questions/13194489/python-change-given-directory-one-level-above-or-below
@@ -84,11 +70,6 @@ def importFile():
 			print 'Can\'t handle that filetype'
 
 	useArray(array)
-
-
-
-def useArray(array):
-	print "DO SOMETHING HERE"
 
 def csvToArray(infilePath):
 	# http://stackoverflow.com/questions/2999373/python-split-files-using-mutliple-split-delimiters
