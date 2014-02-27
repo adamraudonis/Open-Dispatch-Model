@@ -8,9 +8,11 @@ git pull
 IF YOU WANT TO PUSH THING
 git status (you can get an idea for what are your changes)
 git add -A . 
-git status  (should say “no changes added to commit”
 git commit -m “ENTER A MESSAGE HERE THAT IS MEANINGFUL! No, ‘made changes’ bs”
 
 (At this point all changes are still on your computer)
+
+git status  (should say “nothing to commit, working directory clean”)
+If it doesn’t say that exactly try git add -A . and committing again.
 
 git push (This will update the server so we can all see it.
