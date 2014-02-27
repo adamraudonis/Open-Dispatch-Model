@@ -37,7 +37,15 @@ def convertLoadTableToList(loadTable):
 					print timestamp.month
 					print timestamp.day
 					print timestamp.hour
-					newdate = datetime(year=int(float(header[colIndex])),month=timestamp.month,day=timestamp.day,hour=timestamp.hour)
+					newdate = ''
+					try:
+						newdate = datetime(year=int(float(header[colIndex])),month=timestamp.month,day=timestamp.day,hour=timestamp.hour)
+					except Exception, e:
+						print timestamp
+						newdate = datetime(year=int(float(header[colIndex])),month=3,day=1,hour=timestamp.hour)
+						print "INSIDE EXCEPTION "
+						print newdate
+
 					colValue = 0
 					if len(col) > 0:
 						colValue = float(col)
