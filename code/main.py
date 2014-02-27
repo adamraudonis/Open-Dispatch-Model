@@ -7,6 +7,8 @@ import xlrd
 # Our own modules
 import importing
 
+# Note: This file has to be here because python has a hard time importing
+# files from inside another directory.
 
 # Note: Make sure all timestamps are ending values
 # Ex: 12/1/2012 1:00AM means the hour from 12 to 1.
@@ -36,13 +38,6 @@ inputs_map = {}
 def main():
 	print 'Starting...'
 	# I think there should only be several lines of code here!
-
-	# The idea behind main separate from the other code is that
-	# It will be easy for others to access and easy for us to
-	# switch between github and running code
-
-	# Thinking of having a debug main too.
-
 
 	importing.inputFileArrayForName(load_forcasts_name)
 

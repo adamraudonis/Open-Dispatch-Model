@@ -3,12 +3,23 @@ from xlrd import open_workbook
 from xlrd import XLRDError
 import argparse
 import os
+import os.path
 import csv
 
 # Takes a file name and returns its data
 def inputFileArrayForName(filename):
 	#infilePath = 
 	print os.getcwd()
+
+	# Gets the directory of this file (regardles of how executed)
+	print os.path.dirname(os.path.realpath(__file__))
+
+# http://stackoverflow.com/questions/13194489/python-change-given-directory-one-level-above-or-below
+def lvl_down(path):
+    return os.path.split(path)[0]
+
+def lvl_up(path, up_dir):
+    return os.path.join(path, updir)
 
 def importFile():
 
