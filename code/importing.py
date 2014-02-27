@@ -12,7 +12,8 @@ def inputFileArrayForName(filename):
 	print os.getcwd()
 
 	# Gets the directory of this file (regardles of how executed)
-	print os.path.dirname(os.path.realpath(__file__))
+	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
+	inputdir = lvl_up(parentdir,'inputs')
 
 # http://stackoverflow.com/questions/13194489/python-change-given-directory-one-level-above-or-below
 def lvl_down(path):

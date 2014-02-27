@@ -18,3 +18,5 @@ If it doesn’t say that exactly try git add -A . and committing again.
 git push (This will update the server so we can all see it.
 
 Just a tip: Press Apple-K to clear the terminal of text. Control-C, stops code.
+
+IF YOU SEE AN ERROR OR CONFLICT CONTACT ADAM!!! DON’T TRY TO SOLVE IT YOURSELF
