@@ -36,6 +36,12 @@ inputs_map = {}
 
 def main():
 	print 'Starting...'
+
+	# NOTE: One super cool optimization would be to look at the date modified
+	# times of the input files and on the first run cache everything, but
+	# once something is modified you then will regenerate it!
+	# http://stackoverflow.com/questions/375154/how-do-i-get-the-time-a-file-was-last-modified-in-python
+
 	# I think there should only be several lines of code here!
 
 	importing.inputFileArrayForName(load_forcasts_name)
