@@ -5,6 +5,7 @@ import argparse
 import os
 import os.path
 import csv
+import json
 from datetime import date, datetime, time, timedelta
 import dateutil.parser
 
@@ -16,7 +17,8 @@ def inputFileArrayForName(filename):
 	inputdir = lvl_up(parentdir,'inputs')
 	fullfilepath = os.path.join(inputdir, filename)
 	array =  excelToArray(fullfilepath)
-	convertLoadTableToList(array)
+	array = convertLoadTableToList(array)
+	#writeArrayToCSV(os.path.splitext(filename)[0], array)
 
 def convertLoadTableToList(loadTable):
 
@@ -37,15 +39,40 @@ def convertLoadTableToList(loadTable):
 
 					colValue = 0
 					if len(col) > 0:
-						colValue = float(col)
+						colValue = int(float(col))
 					intervals.append([newdate,colValue])
 				colIndex += 1
 		else:
 			header = row
 		index += 1
 
-	intervals.sort(key=lambda interval: interval[0])
-	
+	return sorted(intervals,key=lambda interval: interval[0])
+
+# TODO, put in a folder
+def writeArrayToCSV(filename, array):
+	f = open(filename+".csv","wb")
+	# newArray = []
+	# for interval in array:
+	# 	newArray.append([interval[0].strftime('%Y-%m-%d %H:%M:%S'),interval[1]])
+	# json.dump(newArray,f)
+	writer = csv.writer(f, delimiter=',',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+	for row in array:
+		writer.writerow(row)
+	f.close()
+
+def loadArrayFromCSV(filename):
+	f = open(filename,'r')
+	# array = json.load(f)
+	# newarray = []
+	# for interval in array:
+	# 	newarray.append([parse(interval[0]),float(interval[1])])
+	# return newarray
+	reader = csv.reader(f)
+	rawArray = []
+	for row in reader:
+		rawArray.append([parse(row[0]),int(float(row[1]))])
+	f.close()
+	return rawArray
 
 # http://stackoverflow.com/questions/13194489/python-change-given-directory-one-level-above-or-below
 def lvl_down(path):

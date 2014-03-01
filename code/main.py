@@ -5,6 +5,10 @@ import os
 import xlrd
 # Our own modules
 import importing
+from datetime import date, datetime, time, timedelta
+
+import sqlite3 as lite
+
 
 # Note: This file has to be here because python has a hard time importing
 # files from inside another directory.
@@ -36,15 +40,37 @@ inputs_map = {}
 
 def main():
 	print 'Starting...'
+	# Note: To make CSV loading more efficient you could have just one start date and
+	# then hour offsets from it. That might fail with leap years though!
 
 	# NOTE: One super cool optimization would be to look at the date modified
 	# times of the input files and on the first run cache everything, but
 	# once something is modified you then will regenerate it!
 	# http://stackoverflow.com/questions/375154/how-do-i-get-the-time-a-file-was-last-modified-in-python
 
-	# I think there should only be several lines of code here!
+	# Note: I did a time test and found that loading from excel is way faster than parsing through a csv
+	# It looks like the only optimization from excel would be to put it into a database.
+	# You could also store it in memory and be able to still do the optimization above, only reloading the files that need reloading.
 
+	# Maybe just use a legit database
+	# http://docs.python.org/2/library/sqlite3.html
+
+	con = lite.connect('test.db')
+	cur = con.cursor()
+	cur.execute('SELECT SQLITE_VERSION()')
+	data = cur.fetchone()
+
+	print "SQLite version: %s" % data
+
+	# I think there should only be several lines of code here!
+	print datetime.now().time()
 	importing.inputFileArrayForName(load_forcasts_name)
+	print datetime.now().time()
+	print 'Done 1'
+	print datetime.now().time()
+	# rawArray = importing.loadArrayFromCSV('Hourly_Load_Forecasts.csv')
+	print datetime.now().time()
+	print 'Done 2'
 
 	# Create a map of file input names to data
 
