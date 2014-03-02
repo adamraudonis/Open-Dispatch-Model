@@ -19,6 +19,7 @@ def inputFileArrayForName(filename):
 	array =  excelToArray(fullfilepath)
 	return convertLoadTableToList(array)
 	#writeArrayToCSV(os.path.splitext(filename)[0], array)
+	#return array
 
 def convertLoadTableToList(loadTable):
 
