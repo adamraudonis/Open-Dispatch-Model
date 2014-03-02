@@ -17,7 +17,7 @@ def inputFileArrayForName(filename):
 	inputdir = lvl_up(parentdir,'inputs')
 	fullfilepath = os.path.join(inputdir, filename)
 	array =  excelToArray(fullfilepath)
-	array = convertLoadTableToList(array)
+	return convertLoadTableToList(array)
 	#writeArrayToCSV(os.path.splitext(filename)[0], array)
 
 def convertLoadTableToList(loadTable):
