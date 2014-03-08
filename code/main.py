@@ -1,14 +1,13 @@
 # System Libraries
 import csv
 import os
+from datetime import date, datetime, time, timedelta
+import argparse
 # Third-Party
 import xlrd
 # Our own modules
 import importing
-from datetime import date, datetime, time, timedelta
-
-import sqlite3 as lite
-
+import database
 
 # Note: This file has to be here because python has a hard time importing
 # files from inside another directory.
@@ -26,6 +25,7 @@ fuel_prices = ''
 # Contains the load forecasts in MW
 # Headers: Timestamp, 2012,2013,2014 ...
 load_forcasts_name = 'Hourly_Load_Forecasts.xlsx'
+load_forcasts_table = 'loads'
 
 # All output files are in /ouputs
 # All outputs will have date appended to them to ensure no overwriting.
@@ -39,6 +39,7 @@ resource_table_name = 'Resource_Table'
 inputs_map = {}
 
 def main():
+
 	print 'Starting...'
 	# Note: To make CSV loading more efficient you could have just one start date and
 	# then hour offsets from it. That might fail with leap years though!
@@ -55,22 +56,26 @@ def main():
 	# Maybe just use a legit database
 	# http://docs.python.org/2/library/sqlite3.html
 
-	con = lite.connect('test.db')
-	cur = con.cursor()
-	cur.execute('SELECT SQLITE_VERSION()')
-	data = cur.fetchone()
 
-	print "SQLite version: %s" % data
+	# Note: Replace this with something that detects the dates
+	parser = argparse.ArgumentParser(description='Open Dispatch Model')
+	parser.add_argument('-r','--reload',required=False, help='Reload all files from excel')
+	args = parser.parse_args()
 
-	# I think there should only be several lines of code here!
-	print datetime.now().time()
-	importing.inputFileArrayForName(load_forcasts_name)
-	print datetime.now().time()
-	print 'Done 1'
-	print datetime.now().time()
-	# rawArray = importing.loadArrayFromCSV('Hourly_Load_Forecasts.csv')
-	print datetime.now().time()
-	print 'Done 2'
+	if args.reload:
+		print 'Reloading all from excel files'
+		print datetime.now().time()
+		importing.loadFileIntoDatabase('Hourly_Load_Forecasts.xlsx', 'loads')
+		print datetime.now().time()
+	else:
+		print 'Loading from database'
+		print datetime.now().time()
+		array = database.loadTable('loads');
+		print datetime.now().time()
+
+
+	print 'Got array...'
+
 
 	# Create a map of file input names to data
 

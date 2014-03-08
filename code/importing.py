@@ -8,6 +8,7 @@ import csv
 import json
 from datetime import date, datetime, time, timedelta
 import dateutil.parser
+import database
 
 # Takes a file name and returns its data
 def inputFileArrayForName(filename):
@@ -20,6 +21,15 @@ def inputFileArrayForName(filename):
 	return convertLoadTableToList(array)
 	#writeArrayToCSV(os.path.splitext(filename)[0], array)
 	#return array
+
+def loadFileIntoDatabase(filename,tablename):
+	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
+	inputdir = lvl_up(parentdir,'inputs')
+	fullfilepath = os.path.join(inputdir, filename)
+	array =  excelToArray(fullfilepath)
+	thelist = convertLoadTableToList(array)
+	database.createTable(tablename,thelist)
+
 
 def convertLoadTableToList(loadTable):
 
