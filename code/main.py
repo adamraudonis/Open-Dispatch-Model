@@ -69,18 +69,18 @@ def main():
 		importing.loadFileIntoDatabase('Hourly_Wind_Production.xlsx', 'wind_prod')
 		importing.loadFileIntoDatabase('Hourly_Solar_Production.xlsx', 'solar_prod')
 
-	else:
-		print 'Loading from database'
-		array = database.loadTable('loads');
-		array = database.loadTable('gas_prices');
-		array = database.loadTable('coal_prices');
-		array = database.loadTable('wind_prod');
-		array = database.loadTable('solar_prod');
-		print 'Loaded loads'
-
-
+	print 'Loading from database'
+	loads = database.loadTable('loads');
+	gas_prices = database.loadTable('gas_prices');
+	array = database.loadTable('coal_prices');
+	array = database.loadTable('wind_prod');
+	array = database.loadTable('solar_prod');
+	print 'Loaded loads'
 	print 'Got array...'
 
+
+	resources = []
+	for resource in resources:
 
 	# Create a map of file input names to data
 
