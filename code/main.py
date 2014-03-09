@@ -66,12 +66,16 @@ def main():
 		importing.loadFileIntoDatabase('Hourly_Load_Forecasts.xlsx', 'loads')
 		importing.loadFileIntoDatabase('Hourly_Gas_Forecasts.xlsx', 'gas_prices')
 		importing.loadFileIntoDatabase('Hourly_Coal_Forecasts.xlsx', 'coal_prices')
+		importing.loadFileIntoDatabase('Hourly_Wind_Production.xlsx', 'wind_prod')
+		importing.loadFileIntoDatabase('Hourly_Solar_Production.xlsx', 'solar_prod')
 
 	else:
 		print 'Loading from database'
 		array = database.loadTable('loads');
 		array = database.loadTable('gas_prices');
 		array = database.loadTable('coal_prices');
+		array = database.loadTable('wind_prod');
+		array = database.loadTable('solar_prod');
 		print 'Loaded loads'
 
 
