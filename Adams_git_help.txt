@@ -6,6 +6,7 @@ IF YOU WANT TO GET THINGS
 git pull
 
 IF YOU WANT TO PUSH THING
+git pull
 git status (you can get an idea for what are your changes)
 git add -A . 
 git commit -m “ENTER A MESSAGE HERE THAT IS MEANINGFUL! No, ‘made changes’ bs”
