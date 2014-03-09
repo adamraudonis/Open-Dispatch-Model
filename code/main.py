@@ -15,22 +15,22 @@ import database
 # Note: Make sure all timestamps are ending values
 # Ex: 12/1/2012 1:00AM means the hour from 12 to 1.
 
-# CONSTANTS ########################################
+# # CONSTANTS ########################################
 
-# All input files are in /inputs
+# # All input files are in /inputs
 
-fuel_prices = ''
+# fuel_prices = ''
 
-# Load Forcasts File
-# Contains the load forecasts in MW
-# Headers: Timestamp, 2012,2013,2014 ...
-load_forcasts_name = 'Hourly_Load_Forecasts.xlsx'
-load_forcasts_table = 'loads'
+# # Load Forcasts File
+# # Contains the load forecasts in MW
+# # Headers: Timestamp, 2012,2013,2014 ...
+# load_forcasts_name = 'Hourly_Load_Forecasts.xlsx'
+# load_forcasts_table = 'loads'
 
-# All output files are in /ouputs
-# All outputs will have date appended to them to ensure no overwriting.
+# # All output files are in /ouputs
+# # All outputs will have date appended to them to ensure no overwriting.
 
-resource_table_name = 'Resource_Table'
+# resource_table_name = 'Resource_Table'
 
 # GLOBAL VARS #######################################
 
@@ -63,24 +63,58 @@ def main():
 
 	if args.reload:
 		print 'Reloading all from excel files'
-		importing.loadFileIntoDatabase('Hourly_Load_Forecasts.xlsx', 'loads')
-		importing.loadFileIntoDatabase('Hourly_Gas_Forecasts.xlsx', 'gas_prices')
-		importing.loadFileIntoDatabase('Hourly_Coal_Forecasts.xlsx', 'coal_prices')
-		importing.loadFileIntoDatabase('Hourly_Wind_Production.xlsx', 'wind_prod')
-		importing.loadFileIntoDatabase('Hourly_Solar_Production.xlsx', 'solar_prod')
+		# These are 8760 data from the start year till the end year (MW)
+		importing.forecastsToDatabase('Hourly_Load_Forecasts.xlsx', 'loads')
+		importing.forecastsToDatabase('Hourly_Gas_Forecasts.xlsx', 'gas_prices')
+		importing.forecastsToDatabase('Hourly_Coal_Forecasts.xlsx', 'coal_prices')
+
+		# These are 8760 data for ONE year that should be assumed constant for all years (MW)
+		# There are different sites in the file
+		importing.variableProdToDatabase('Hourly_Wind_Production.xlsx', 'wind_prod')
+		importing.variableProdToDatabase('Hourly_Solar_Production.xlsx', 'solar_prod')
+
+		#importing.resourceInfoToDatabase('PGE_Resource.xlsx','resources')
 
 	print 'Loading from database'
-	loads = database.loadTable('loads');
-	gas_prices = database.loadTable('gas_prices');
-	array = database.loadTable('coal_prices');
-	array = database.loadTable('wind_prod');
-	array = database.loadTable('solar_prod');
-	print 'Loaded loads'
+	loads = database.loadTableAll('loads'); # date, power (MW)
+	gas_prices = database.loadTableAll('gas_prices');
+	coal_prices = database.loadTableAll('coal_prices');
+
+	site_test = database.loadVariableSite('wind_prod','26797_Onshore')
+	print site_test
+	#wind_prod = database.loadTable('wind_prod');   # date, site, power
+	#solar_prod = database.loadTable('solar_prod');
+
+
 	print 'Got array...'
 
+	# Scale wind and solar
 
-	resources = []
-	for resource in resources:
+	# The database doesn't really need dates.
+
+	# Check all same lengths
+
+	#dispatched_array = []
+
+	#for interval in loads:
+		#dispatched_resources = {}
+		# Name is type + '_' + resource name
+		#dispatched_resources[]
+		#dispatched_array.append(dispatched_resources)
+		
+		# Dispatch wind - required
+		# Dispatch solar - required
+		# Dispatch hydro - like a battery
+		# Now sort by variable cost which should look like
+		# Dispatch coal
+		# Dispatch gas CCCT
+		# Dispatch gas SCCT
+		# Where electrical batteries should be (Could be used to curtail wind)
+
+	# Dispatching a resource involves, looking up it'
+
+	#resources = []
+	#for resource in resources:
 
 	# Create a map of file input names to data
 
