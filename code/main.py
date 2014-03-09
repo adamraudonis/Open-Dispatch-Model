@@ -40,7 +40,6 @@ inputs_map = {}
 
 def main():
 
-	print 'Starting...'
 	# Note: To make CSV loading more efficient you could have just one start date and
 	# then hour offsets from it. That might fail with leap years though!
 
@@ -64,14 +63,16 @@ def main():
 
 	if args.reload:
 		print 'Reloading all from excel files'
-		print datetime.now().time()
 		importing.loadFileIntoDatabase('Hourly_Load_Forecasts.xlsx', 'loads')
-		print datetime.now().time()
+		importing.loadFileIntoDatabase('Hourly_Gas_Forecasts.xlsx', 'gas_prices')
+		importing.loadFileIntoDatabase('Hourly_Coal_Forecasts.xlsx', 'coal_prices')
+
 	else:
 		print 'Loading from database'
-		print datetime.now().time()
 		array = database.loadTable('loads');
-		print datetime.now().time()
+		array = database.loadTable('gas_prices');
+		array = database.loadTable('coal_prices');
+		print 'Loaded loads'
 
 
 	print 'Got array...'

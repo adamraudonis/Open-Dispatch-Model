@@ -6,55 +6,59 @@ import os
 import os.path
 import csv
 import json
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, timedelta
+import time
 import dateutil.parser
 import database
 
 # Takes a file name and returns its data
 def inputFileArrayForName(filename):
-
+	pass
 	# Gets the directory of this file (regardles of how executed)
-	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
-	inputdir = lvl_up(parentdir,'inputs')
-	fullfilepath = os.path.join(inputdir, filename)
-	array =  excelToArray(fullfilepath)
-	return convertLoadTableToList(array)
+	# parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
+	# inputdir = lvl_up(parentdir,'inputs')
+	# fullfilepath = os.path.join(inputdir, filename)
+	# array =  excelToArray(fullfilepath)
+	# return convertLoadTableToList(array)
 	#writeArrayToCSV(os.path.splitext(filename)[0], array)
 	#return array
 
 def loadFileIntoDatabase(filename,tablename):
+	startTime = int(time.time())
 	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
 	inputdir = lvl_up(parentdir,'inputs')
 	fullfilepath = os.path.join(inputdir, filename)
 	array =  excelToArray(fullfilepath)
 	thelist = convertLoadTableToList(array)
 	database.createTable(tablename,thelist)
-
+	endTime = int(time.time())
+	print 'Loaded %s into database table %s in %s seconds' % (filename,tablename,(endTime-startTime))
+	#writeArrayToCSV('test', array)
 
 def convertLoadTableToList(loadTable):
 
 	index = 0
 	header = []
 	intervals = []
+	# print int(loadTable[1])
+	timestamp = parse('01/01/%s 00:00' % int(float(loadTable[0][1])))
 	for row in loadTable:
 		if index > 0:
-			timestamp = parse(row[0])
 			colIndex = 0
 			for col in row:
 				if colIndex > 0:
-					newdate = ''
-					try:
-						newdate = datetime(year=int(float(header[colIndex])),month=timestamp.month,day=timestamp.day,hour=timestamp.hour)
-					except Exception, e:
-						newdate = datetime(year=int(float(header[colIndex])),month=3,day=1,hour=timestamp.hour)
+					#newdate = ''
+					timestamp = timestamp + timedelta(seconds=60*60)
+					# try:
+					# 	newdate = datetime(year=int(float(header[colIndex])),month=timestamp.month,day=timestamp.day,hour=timestamp.hour)
+					# except Exception, e:
+					# 	newdate = datetime(year=int(float(header[colIndex])),month=3,day=1,hour=timestamp.hour)
 
 					colValue = 0
 					if len(col) > 0:
 						colValue = int(float(col))
-					intervals.append([newdate,colValue])
+					intervals.append([timestamp,colValue])
 				colIndex += 1
-		else:
-			header = row
 		index += 1
 
 	return sorted(intervals,key=lambda interval: interval[0])
