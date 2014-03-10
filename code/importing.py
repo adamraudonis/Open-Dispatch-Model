@@ -11,29 +11,50 @@ import time
 import dateutil.parser
 import database
 
-# Takes a file name and returns its data
-def inputFileArrayForName(filename):
-	pass
-	# Gets the directory of this file (regardles of how executed)
-	# parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
-	# inputdir = lvl_up(parentdir,'inputs')
-	# fullfilepath = os.path.join(inputdir, filename)
-	# array =  excelToArray(fullfilepath)
-	# return convertLoadTableToList(array)
-	#writeArrayToCSV(os.path.splitext(filename)[0], array)
-	#return array
-
-def loadFileIntoDatabase(filename,tablename):
+def forecastsToDatabase(filename,tablename):
 	startTime = int(time.time())
 	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
 	inputdir = lvl_up(parentdir,'inputs')
 	fullfilepath = os.path.join(inputdir, filename)
 	array =  excelToArray(fullfilepath)
 	thelist = convertLoadTableToList(array)
-	database.createTable(tablename,thelist)
+	database.createForecastTable(tablename,thelist)
 	endTime = int(time.time())
 	print 'Loaded %s into database table %s in %s seconds' % (filename,tablename,(endTime-startTime))
 	#writeArrayToCSV('test', array)
+
+def resourceInfoToDatabase():
+	pass
+
+def variableProdToDatabase(filename,tablename):
+	startTime = int(time.time())
+	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
+	inputdir = lvl_up(parentdir,'inputs')
+	fullfilepath = os.path.join(inputdir, filename)
+	array =  excelToArray(fullfilepath)
+	thelist = convertVariableProdToList(array)
+	database.createVariableProdTable(tablename,thelist)
+	endTime = int(time.time())
+	print 'Loaded %s into database table %s in %s seconds' % (filename,tablename,(endTime-startTime))
+	#writeArrayToCSV('test', array)
+def convertVariableProdToList(productionTable):
+
+	index = 0
+	header = []
+	intervals = []
+	for row in productionTable:
+		if index > 0:
+			colIndex = 0
+			for col in row:
+				if colIndex > 0:
+					colValue = 0
+					if len(col) > 0:
+						colValue = int(float(col))
+					intervals.append([index,productionTable[0][colIndex],colValue])
+				colIndex += 1
+		index += 1
+
+	return sorted(intervals,key=lambda interval: interval[0])
 
 def convertLoadTableToList(loadTable):
 
