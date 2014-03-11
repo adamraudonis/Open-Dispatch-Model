@@ -22,7 +22,7 @@ def excelToArray(infilePath):
 	outputArray = []
 	categories = []
 	for col in range(0,s.ncols):
-		categories.append(stringAtCell(s,0,col))
+		categories.append(importing.stringAtCell(s,0,col))
 	print categories
 	for row in range(1,s.nrows):
 		valuesDict = {}
@@ -34,24 +34,10 @@ def excelToArray(infilePath):
 				#except:
 				#	raise Exception('A dumb Excel date error occurred. Please convert to CSV')
 			else:
-				valuesDict[categories[col]] = stringAtCell(s,row,col)
+				valuesDict[categories[col]] = importing.stringAtCell(s,row,col)
 		outputArray.append(valuesDict)
 
 	return outputArray
-
-
-def stringAtCell(sheet,row,col):
-	try:
-		valueStr = ''
-		if isinstance(sheet.cell(row,col).value, (str,unicode)):
-			valueStr = sheet.cell(row,col).value.encode('utf-8','ignore')
-		else:
-			valueStr = str(sheet.cell(row,col).value).encode('utf-8','ignore')
-		return valueStr.strip()
-	except:
-		print 'Cell '+str(row)+', '+ str(col)+' has value:'+valueStr+' is type: ' + str(sheet.cell(row,col).ctype)
-		raise Exception('String at Cell Failed!')
-
 
 
 d = loadDictionary()
