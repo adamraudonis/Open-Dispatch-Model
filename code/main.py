@@ -91,12 +91,13 @@ def main():
 	print site_test[8700][2]
 	LR = LoadResourceImport.loadDictionary()
 	pprint(LR)
-	for i in LR:
-		if i['Resource Name'] == 'PaTu Wind' and i['Total Capacity (MW)'] != '':
-			resource_capacity = i['Total Capacity (MW)'] # ISSUE HERE WITH TYPE FLOAT
+	for resource in LR:
+		if resource['Resource Name'] == 'PaTu Wind' and resource['Total Capacity (MW)'] != '':
+			resource_capacity = resource['Total Capacity (MW)'] # ISSUE HERE WITH TYPE FLOAT
 			print resource_capacity
 			for hour in site_test:
-				hour[2] = hour[2] * resource_capacity
+				print hour[2]
+				hour[2] = float(hour[2]) * float(resource_capacity)
 
 	print site_test[8700][2] # Check to see if *3
 
