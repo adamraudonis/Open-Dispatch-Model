@@ -54,6 +54,9 @@ def loadTable(tableName,query):
 	 	con.commit()
 
 		data = cur.fetchall()
+		# http://stackoverflow.com/questions/14831830/convert-a-list-of-tuples-to-a-list-of-lists
+		# Convert from list of tuples to list of lists
+		return [list(elem) for elem in data]
 		return data
 
 	except lite.Error, e:

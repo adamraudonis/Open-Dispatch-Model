@@ -78,9 +78,12 @@ def main():
 		#importing.resourceInfoToDatabase('PGE_Resource.xlsx','resources')
 
 	print 'Loading from database'
-	loads = database.loadTableAll('loads'); # date, power (MW)
-	gas_prices = database.loadTableAll('gas_prices');
-	coal_prices = database.loadTableAll('coal_prices');
+	#loads = database.loadTableAll('loads'); # date, power (MW)
+	#gas_prices = database.loadTableAll('gas_prices');
+	#coal_prices = database.loadTableAll('coal_prices');
+
+	importing.variableProdToDatabase('Hourly_Wind_Production.xlsx', 'wind_prod')
+
 
 	site_test = database.loadVariableSite('wind_prod','26797_Onshore')
 	# TODO: Will Scale by LoadResource capacity size
@@ -88,18 +91,17 @@ def main():
 	#wind_prod = database.loadTable('wind_prod');   # date, site, power
 	#solar_prod = database.loadTable('solar_prod');
 
-	print site_test[8700][2]
 	LR = LoadResourceImport.loadDictionary()
 	pprint(LR)
 	for resource in LR:
 		if resource['Resource Name'] == 'PaTu Wind' and resource['Total Capacity (MW)'] != '':
 			resource_capacity = resource['Total Capacity (MW)'] # ISSUE HERE WITH TYPE FLOAT
-			print resource_capacity
+			#print resource_capacity
 			for hour in site_test:
-				print hour[2]
 				hour[2] = float(hour[2]) * float(resource_capacity)
 
-	print site_test[8700][2] # Check to see if *3
+	for row in site_test:
+		print row
 
 	print 'Got array...'
 

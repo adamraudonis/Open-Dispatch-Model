@@ -23,9 +23,6 @@ def forecastsToDatabase(filename,tablename):
 	print 'Loaded %s into database table %s in %s seconds' % (filename,tablename,(endTime-startTime))
 	#writeArrayToCSV('test', array)
 
-def resourceInfoToDatabase():
-	pass
-
 def variableProdToDatabase(filename,tablename):
 	startTime = int(time.time())
 	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
@@ -37,6 +34,7 @@ def variableProdToDatabase(filename,tablename):
 	endTime = int(time.time())
 	print 'Loaded %s into database table %s in %s seconds' % (filename,tablename,(endTime-startTime))
 	#writeArrayToCSV('test', array)
+
 def convertVariableProdToList(productionTable):
 
 	index = 0
@@ -49,7 +47,7 @@ def convertVariableProdToList(productionTable):
 				if colIndex > 0:
 					colValue = 0
 					if len(col) > 0:
-						colValue = int(float(col))
+						colValue = float(col)
 					intervals.append([index,productionTable[0][colIndex],colValue])
 				colIndex += 1
 		index += 1

@@ -6,6 +6,9 @@ from xlrd import XLRDError
 from xlrd import open_workbook
 from pprint import pprint
 
+def main():
+	d = loadDictionary()
+	pprint(d)
 
 def loadDictionary():
 	filename = 'PGE_Resources.xlsx'
@@ -13,7 +16,6 @@ def loadDictionary():
 	inputdir = importing.lvl_up(parentdir,'inputs')
 	fullfilepath = os.path.join(inputdir, filename)
 	return excelToArray(fullfilepath)
-
 
 def excelToArray(infilePath):
 	wb = open_workbook(infilePath)
@@ -39,6 +41,5 @@ def excelToArray(infilePath):
 
 	return outputArray
 
-
-d = loadDictionary()
-pprint(d)
+if __name__ == "__main__":
+	main()
