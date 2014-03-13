@@ -64,24 +64,16 @@ def convertLoadTableToList(loadTable):
 	intervals = []
 	# print int(loadTable[1])
 	timestamp = parse('01/01/%s 00:00' % int(float(loadTable[0][1])))
-	for row in loadTable:
-		if index > 0:
-			colIndex = 0
-			for col in row:
-				if colIndex > 0:
-					#newdate = ''
+	for colIndex in xrange(0,len(loadTable[0])):
+		if colIndex > 0:
+			rowIndex = 0
+			for row in loadTable:
+				if rowIndex > 0:
 					timestamp = timestamp + timedelta(seconds=60*60)
-					# try:
-					# 	newdate = datetime(year=int(float(header[colIndex])),month=timestamp.month,day=timestamp.day,hour=timestamp.hour)
-					# except Exception, e:
-					# 	newdate = datetime(year=int(float(header[colIndex])),month=3,day=1,hour=timestamp.hour)
-
-					colValue = 0
-					if len(col) > 0:
-						colValue = int(float(col))
+					colValue = int(float(row[colIndex]))
 					intervals.append([timestamp,colValue])
-				colIndex += 1
-		index += 1
+				rowIndex += 1
+		colIndex += 1
 
 	return sorted(intervals,key=lambda interval: interval[0])
 
