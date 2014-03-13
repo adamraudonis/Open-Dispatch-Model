@@ -155,31 +155,36 @@ def main():
 					resource_curve = wind_resource_map[resource['Name']]
 				else:
 					resource_curve = wind_resource_map.values()[0] # TODO
-
 				scaledValue = float(resource_curve[yearhour]) * int(float(resource['Rated Capacity (MW)']))
 				dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),scaledValue])
 				power_generated += scaledValue
 
 		dispatchOrder = []
 		total_load = interval[1]
+		year = interval[0].year
 		for resource in resources:
 			if len(resource['Heatrate (btu/kWh)']) > 0:
-				fuelCost = 0
-				if resource['Type'].lower() == 'gas':
-					fuelCost = float(gas_prices[totalhour]) * float(resource['Heatrate (btu/kWh)']) / 1000 # $/MMBTU to
+				if year >= sToi(resource['In-service date']) and year <= sToi(resource['Retirement year']):
+					fuelCost = 0
+					if resource['Type'].lower() == 'gas':
+						fuelCost = float(gas_prices[totalhour]) * float(resource['Heatrate (btu/kWh)']) / 1000 # $/MMBTU to
 
-				if resource['Type'].lower() == 'coal':
-					fuelCost = float(coal_prices[totalhour]) * float(resource['Heatrate (btu/kWh)']) / 1000 # $/MMBTU to
+					if resource['Type'].lower() == 'coal':
+						fuelCost = float(coal_prices[totalhour]) * float(resource['Heatrate (btu/kWh)']) / 1000 # $/MMBTU to
 
-				#fixedOM = float(resource['Fixed O&M ($/kW)'])*1000*float(resource['Rated Capacity (MW)'])
+					#fixedOM = float(resource['Fixed O&M ($/kW)'])*1000*float(resource['Rated Capacity (MW)'])
 
-				totalVarCost = float(resource['Var O&M ($/MWh)']) + fuelCost
-				dispatchOrder.append([totalVarCost,resource])
+					totalVarCost = float(resource['Var O&M ($/MWh)']) + fuelCost
+					dispatchOrder.append([totalVarCost,resource])
 
 		dispatchOrder = sorted(dispatchOrder,key=lambda interval: interval[0])
+		# for resourceArr in dispatchOrder:
+		# 	print "%s %s %s" % (resourceArr[0],resourceArr[1]['Name'],resourceArr[1]['Type'])
+		# sdfdf
+
 		for resourceArr in dispatchOrder:
 			resource = resourceArr[1]
-			#print "%s %s" % (resourceArr[0],resource['Name'])
+			# print "%s %s" % (resourceArr[0],resource['Name'])
 			netLoad = total_load - power_generated
 			if netLoad < 0:
 				raise Exception('Produced more power than load. Are you sure???')
