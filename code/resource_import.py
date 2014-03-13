@@ -5,10 +5,12 @@ import xlrd
 from xlrd import XLRDError
 from xlrd import open_workbook
 from pprint import pprint
+import database
 
 def main():
-	d = loadDictionary()
-	pprint(d)
+	# d = loadDictionary()
+	# pprint(d)
+	print peakJanCapacity('wind_prod','26797_onshore')
 
 def loadDictionary():
 	filename = 'PGE_Resources.xlsx'
@@ -40,6 +42,20 @@ def excelToArray(infilePath):
 		outputArray.append(valuesDict)
 
 	return outputArray
+
+def peakJanCapacity(tableName, siteName):
+	output = database.loadVariableSite(tableName, siteName)
+	janStart = 0
+	janFinish = 24 * 31
+	hour = janStart
+	janMax = 0
+	pprint(output) # OUTPUT CURRENTLY EMPTY
+	while hour < janFinish:
+		if output[hour][2] >= janMax:
+			janMax = output[hour][2]
+		hour = hour + 1
+	return janMax
+
 
 if __name__ == "__main__":
 	main()
