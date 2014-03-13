@@ -39,12 +39,20 @@ def createVariableProdTable(tableName,dateSitePowerArray):
 	    if con:
 	        con.close() 
 
+def loadForecastsNumOnly(tableName):
+	return loadTable(tableName,"SELECT power FROM %s" % (tableName))
 
 def loadTableAll(tableName):
 	return loadTable(tableName,'SELECT thedate as "ts [timestamp]", power  FROM %s' % tableName)
 
 def loadVariableSite(tableName,siteName):
 	return loadTable(tableName,"SELECT * FROM %s WHERE site = '%s'" % (tableName,siteName))
+
+def getVarSiteNames(tableName):
+	return loadTable(tableName,"SELECT DISTINCT site FROM %s" % (tableName))
+
+def loadVariableNumsOnly(tableName,siteName):
+	return loadTable(tableName,"SELECT power FROM %s WHERE site = '%s'" % (tableName,siteName))
 
 def loadTable(tableName,query):
 	try:
@@ -56,7 +64,18 @@ def loadTable(tableName,query):
 		data = cur.fetchall()
 		# http://stackoverflow.com/questions/14831830/convert-a-list-of-tuples-to-a-list-of-lists
 		# Convert from list of tuples to list of lists
-		return [list(elem) for elem in data]
+		# print data
+		print query
+		# print data[0]
+		if len(data) > 0:
+			if len(data[0]) == 1:
+				return [i[0] for i in data]
+			else:
+				return [list(elem) for elem in data]
+		else:
+			return []
+
+
 
 	except lite.Error, e:
 	    if con:

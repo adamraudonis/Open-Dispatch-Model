@@ -10,6 +10,8 @@ from datetime import date, datetime, timedelta
 import time
 import dateutil.parser
 import database
+from pprint import pprint
+
 
 def forecastsToDatabase(filename,tablename):
 	startTime = int(time.time())
@@ -30,6 +32,7 @@ def variableProdToDatabase(filename,tablename):
 	fullfilepath = os.path.join(inputdir, filename)
 	array =  excelToArray(fullfilepath)
 	thelist = convertVariableProdToList(array)
+	#pprint(thelist)
 	database.createVariableProdTable(tablename,thelist)
 	endTime = int(time.time())
 	print 'Loaded %s into database table %s in %s seconds' % (filename,tablename,(endTime-startTime))

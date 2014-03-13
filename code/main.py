@@ -66,42 +66,168 @@ def main():
 	if args.reload:
 		print 'Reloading all from excel files'
 		# These are 8760 data from the start year till the end year (MW)
-		importing.forecastsToDatabase('Hourly_Load_Forecasts.xlsx', 'loads')
-		importing.forecastsToDatabase('Hourly_Gas_Forecasts.xlsx', 'gas_prices')
-		importing.forecastsToDatabase('Hourly_Coal_Forecasts.xlsx', 'coal_prices')
+		#importing.forecastsToDatabase('Hourly_Load_Forecasts.xlsx', 'loads')
+		#importing.forecastsToDatabase('Test_Hourly_Load.xlsx', 'loads')
+		importing.forecastsToDatabase('Test_Hourly_Load2.xlsx', 'loads')
+
+		#importing.forecastsToDatabase('Hourly_Gas_Forecasts.xlsx', 'gas_prices')
+		#importing.forecastsToDatabase('Hourly_Coal_Forecasts.xlsx', 'coal_prices')
 
 		# These are 8760 data for ONE year that should be assumed constant for all years (MW)
 		# There are different sites in the file
-		importing.variableProdToDatabase('Hourly_Wind_Production.xlsx', 'wind_prod')
-		importing.variableProdToDatabase('Hourly_Solar_Production.xlsx', 'solar_prod')
+		importing.variableProdToDatabase('Hourly_Wind_Production.xlsx', 'wind')
+		importing.variableProdToDatabase('Hourly_Solar_Production.xlsx', 'solar')
 
 		#importing.resourceInfoToDatabase('PGE_Resource.xlsx','resources')
 
 	print 'Loading from database'
-	#loads = database.loadTableAll('loads'); # date, power (MW)
-	#gas_prices = database.loadTableAll('gas_prices');
-	#coal_prices = database.loadTableAll('coal_prices');
-
-	importing.variableProdToDatabase('Hourly_Wind_Production.xlsx', 'wind_prod')
-
-
-	site_test = database.loadVariableSite('wind_prod','26797_Onshore')
+	
+	loads = database.loadTableAll('loads'); # date, power (MW)
+	gas_prices = database.loadForecastsNumOnly('gas_prices');
+	coal_prices = database.loadForecastsNumOnly('coal_prices');
+	# importing.variableProdToDatabase('Hourly_Wind_Production.xlsx', 'wind_prod')
+	# site_test = database.loadVariableSite('wind_prod','26797_Onshore')
+	
 	# TODO: Will Scale by LoadResource capacity size
 	#print site_test
 	#wind_prod = database.loadTable('wind_prod');   # date, site, power
 	#solar_prod = database.loadTable('solar_prod');
 
-	LR = LoadResourceImport.loadDictionary()
-	pprint(LR)
-	for resource in LR:
-		if resource['Resource Name'] == 'PaTu Wind' and resource['Total Capacity (MW)'] != '':
-			resource_capacity = resource['Total Capacity (MW)'] # ISSUE HERE WITH TYPE FLOAT
-			#print resource_capacity
-			for hour in site_test:
-				hour[2] = float(hour[2]) * float(resource_capacity)
+	resources = resource_import.loadDictionary()
 
-	for row in site_test:
-		print row
+	# Scale and Aggregate Wind and Solar
+	# Maybe have the option of just scaling.
+	# Actually maybe aggregate last.
+	# Assume that every generator has different cap ex, variable costs.
+
+	# If wind curve not present, use first wind curve?
+	# Use constant january capacity?
+
+	wind_resource_map = {}
+	windnames = database.getVarSiteNames('wind')
+	for sitename in windnames:
+		wind_resource_map[sitename] = database.loadVariableNumsOnly('wind',sitename)
+
+	solar_resource_map = {}
+	solarnames = database.getVarSiteNames('solar')
+	for sitename in solarnames:
+		solar_resource_map[sitename] = database.loadVariableNumsOnly('solar',sitename)
+
+	# Create map of renewable resources in memory
+	# var_resource_map = {}
+	# for resource in resources:
+	# 	if resource['Type'].lower() == 'wind' or resource['Type'].lower() == 'solar':
+	# 		var_resource_map[resource['Name']] = database.loadVariableNumsOnly(resource['Type'].lower(),resource['Name'])
+
+	# sdf
+
+	dispatched_array = []
+	yearhour = 0
+	totalhour = 0
+	for interval in loads:
+		dispatched_resources = {'Timestamp':interval[0],'Load':interval[1],'resources':[]}
+		# [name,type,power]
+		# dispatched_resources['resources'].append(['26797_Onshore','wind',23])
+		# dispatched_resources['resources'].append(['23095_Offshore','wind',18])
+		# dispatched_resources['resources'].append(['Gasthing','gas',455])
+
+		dispatched_array.append(dispatched_resources)
+
+		power_generated = 0
+		# Consider moving the solar and wind loop outside
+		# Dispatch solar and wind
+		for resource in resources:
+			#print resource
+
+			if resource['Type'].lower() == 'solar':
+				resource_curve = []
+				if resource['Name'] in solar_resource_map:
+					resource_curve = solar_resource_map[resource['Name']]
+				else:
+					resource_curve = solar_resource_map.values()[0] # TODO
+				scaledValue = float(resource_curve[yearhour]) * int(float(resource['Rated Capacity (MW)']))
+				dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),scaledValue])
+				power_generated += scaledValue
+
+			if resource['Type'].lower() == 'wind':
+				resource_curve = []
+				if resource['Name'] in wind_resource_map:
+					resource_curve = wind_resource_map[resource['Name']]
+				else:
+					resource_curve = wind_resource_map.values()[0] # TODO
+
+				scaledValue = float(resource_curve[yearhour]) * int(float(resource['Rated Capacity (MW)']))
+				dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),scaledValue])
+				power_generated += scaledValue
+
+		dispatchOrder = []
+		total_load = interval[1]
+		for resource in resources:
+			if len(resource['Heatrate (btu/kWh)']) > 0:
+				fuelCost = 0
+				if resource['Type'].lower() == 'gas':
+					fuelCost = float(gas_prices[totalhour]) * float(resource['Heatrate (btu/kWh)']) / 1000 # $/MMBTU to
+
+				if resource['Type'].lower() == 'coal':
+					fuelCost = float(coal_prices[totalhour]) * float(resource['Heatrate (btu/kWh)']) / 1000 # $/MMBTU to
+
+				#fixedOM = float(resource['Fixed O&M ($/kW)'])*1000*float(resource['Rated Capacity (MW)'])
+
+				totalVarCost = float(resource['Var O&M ($/MWh)']) + fuelCost
+				dispatchOrder.append([totalVarCost,resource])
+
+		dispatchOrder = sorted(dispatchOrder,key=lambda interval: interval[0])
+		for resourceArr in dispatchOrder:
+			resource = resourceArr[1]
+			#print "%s %s" % (resourceArr[0],resource['Name'])
+			netLoad = total_load - power_generated
+			if netLoad < 0:
+				raise Exception('Produced more power than load. Are you sure???')
+			else:
+				if netLoad - float(resource['Rated Capacity (MW)']) < 0:
+					dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),netLoad])
+					power_generated += netLoad
+				else:
+					dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),float(resource['Rated Capacity (MW)'])])
+					power_generated += float(resource['Rated Capacity (MW)'])
+
+		if yearhour == 8759:
+			yearhour = 0
+		yearhour += 1
+		totalhour += 1
+
+	print 'Got to aggregate'
+
+	# Aggregate on type
+	aggregated_dispatch = []
+	for dispatched in dispatched_array:
+		type_map = {}
+		for resource in dispatched['resources']:
+			if resource[1].lower() in type_map:
+				type_map[resource[1].lower()].append(resource[2])
+			else:
+				type_map[resource[1].lower()] = [resource[2]]
+
+		dispatched_resources = {}
+		for type_key in type_map:
+			dispatched_resources[type_key] = sum(type_map[type_key])
+
+		dispatched_resources['Timestamp'] = dispatched['Timestamp']
+		dispatched_resources['Load'] = dispatched['Load']
+		aggregated_dispatch.append(dispatched_resources)
+
+	# Write to CSV
+	f = open('8760_dispatch.csv','wb')
+	aggregated_dispatch[0].keys()
+	acopy = aggregated_dispatch[0].copy()
+	del acopy['Timestamp']
+	del acopy['Load']
+	keys = ['Timestamp','Load']
+	keys.extend(acopy.keys())
+	dict_writer = csv.DictWriter(f, keys,extrasaction='ignore')
+	dict_writer.writer.writerow(keys)
+	dict_writer.writerows(aggregated_dispatch)
+	f.close()
 
 	print 'Got array...'
 
@@ -135,7 +261,6 @@ def main():
 
 	# Create a map of file input names to data
 
-
 	# Hmmm
 	# Not sure if we should create an array of [date,load]
 	# and then you could have a function getLoadAtDate() which does
@@ -150,7 +275,11 @@ def main():
 	# make calculations
 	# Write output files
 
-
+def sToi(string):
+	if len(string) > 0:
+		return int(float(string))
+	else:
+		return 0;
 
 if __name__ == "__main__":
 	main()
