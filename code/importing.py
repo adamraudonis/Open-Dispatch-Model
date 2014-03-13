@@ -21,7 +21,7 @@ def forecastsToDatabase(filename,tablename):
 	database.createForecastTable(tablename,thelist)
 	endTime = int(time.time())
 	print 'Loaded %s into database table %s in %s seconds' % (filename,tablename,(endTime-startTime))
-	#writeArrayToCSV('test', array)
+	writeArrayToCSV('testLoads', thelist)
 
 def variableProdToDatabase(filename,tablename):
 	startTime = int(time.time())

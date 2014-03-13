@@ -8,7 +8,7 @@ import xlrd
 # Our own modules
 import importing
 import database
-import LoadResourceImport
+import resource_import
 from pprint import pprint
 
 # Note: This file has to be here because python has a hard time importing
