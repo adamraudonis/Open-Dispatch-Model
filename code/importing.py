@@ -38,6 +38,18 @@ def variableProdToDatabase(filename,tablename):
 	print 'Loaded %s into database table %s in %s seconds' % (filename,tablename,(endTime-startTime))
 	#writeArrayToCSV('test', array)
 
+def importToDictArray(filename):
+	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
+	inputdir = lvl_up(parentdir,'inputs')
+	fullfilepath = os.path.join(inputdir, filename)
+	return excelToDictArray(fullfilepath)
+
+def importTo2DArray(filename):
+	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
+	inputdir = lvl_up(parentdir,'inputs')
+	fullfilepath = os.path.join(inputdir, filename)
+	return excelToArray(fullfilepath)
+
 def convertVariableProdToList(productionTable):
 
 	index = 0
@@ -166,6 +178,30 @@ def excelToArray(infilePath):
 			else:
 				valuesArray.append(stringAtCell(s,row,col))
 		outputArray.append(valuesArray)
+
+	return outputArray
+
+def excelToDictArray(infilePath):
+	wb = open_workbook(infilePath)
+	sheet1 = wb.sheets()[0]
+	s = wb.sheets()[0]
+	outputArray = []
+	headers = []
+	for col in range(0,s.ncols):
+		headers.append(stringAtCell(s,0,col))
+	print headers
+	for row in range(1,s.nrows):
+		valuesDict = {}
+		for col in range(0,s.ncols):
+			if s.cell(row,col).ctype == xlrd.XL_CELL_DATE:
+				#try:
+					date_value = xlrd.xldate_as_tuple(s.cell_value(row,col),wb.datemode)
+					valuesDict.append(headers[col],datetime(*date_value).strftime('%d-%b-%Y %H:%M:%S'))
+				#except:
+				#	raise Exception('A dumb Excel date error occurred. Please convert to CSV')
+			else:
+				valuesDict[headers[col]] = stringAtCell(s,row,col)
+		outputArray.append(valuesDict)
 
 	return outputArray
 

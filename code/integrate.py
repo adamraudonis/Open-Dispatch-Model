@@ -116,12 +116,12 @@ def fillValleyArray(inputarray, battery_power_cap, battery_energy_cap):
 	sorted_array = sorted(inputarray, key=lambda interval: interval[1])
 	dischargeResults = fillValleys(sorted_array,battery_power_cap,battery_energy_cap)
 	newArray = []
-	for i in xrange(0,len(sorted_array)-1):
+	for i in xrange(0,len(sorted_array)):
 		result = 0
 		if i < len(dischargeResults):
 			result = dischargeResults[i]
 		newArray.append([sorted_array[i][0],sorted_array[i][1],result])
-	#newArray = sorted(newArray, reverse=True, key=lambda interval: interval[0])
+	newArray = sorted(newArray, reverse=False, key=lambda interval: interval[0])
 	return newArray
 
 	f = open("test_shave1.csv","wb")
@@ -261,8 +261,8 @@ def shavePeakArray(inputarray, battery_power_cap, battery_energy_cap):
 		result = 0
 		if i < len(dischargeResults):
 			result = dischargeResults[i]
-		newArray.append([sorted_array[i][0],sorted_array[i][1],result * -1])
-	# newArray = sorted(newArray, reverse=True, key=lambda interval: interval[0])
+		newArray.append([sorted_array[i][0],sorted_array[i][1],result])
+	newArray = sorted(newArray, reverse=True, key=lambda interval: interval[0])
 	return newArray
 
 	f = open("test_shave.csv","wb")

@@ -8,7 +8,7 @@ import xlrd
 # Our own modules
 import importing
 import database
-import resource_import
+import integrate
 from pprint import pprint
 
 # Note: This file has to be here because python has a hard time importing
@@ -41,6 +41,8 @@ from pprint import pprint
 inputs_map = {}
 
 def main():
+
+	print NumToMonth(1)
 
 	# Note: To make CSV loading more efficient you could have just one start date and
 	# then hour offsets from it. That might fail with leap years though!
@@ -93,7 +95,37 @@ def main():
 	#wind_prod = database.loadTable('wind_prod');   # date, site, power
 	#solar_prod = database.loadTable('solar_prod');
 
-	resources = resource_import.loadDictionary()
+	resources = importing.importToDictArray('PGE_Resources.xlsx')
+
+	# In the format of [jan to dec]
+	raw_hydro = importing.importTo2DArray('HydroMonthMap.xlsx')[1]
+	print raw_hydro
+	# raw_hydro_map = {} # map of months to percents
+	# historical_sum = 0
+	# for pair in raw_hydro_pairs:
+	# 	historical_sum += float(raw_hydro_pairs[pair])
+	# 	raw_hydro_map.update(pair) # Combine all the "MONTH":123 pairs
+
+	# for pair in raw_hydro_pairs:
+	# 	raw_hydro_map.update({pair.lower():(float(raw_hydro_pairs[pair])/historical_sum)})
+
+	sum_hydro = 0
+	for value in raw_hydro:
+		sum_hydro += float(value)
+
+	hydro_energy_map = {}
+	for resource in resources:
+		if resource['Type'].lower() == 'reservoir':
+			print 'inside'
+			newhydro = []
+			for month_value in raw_hydro:
+				newhydro.append(float(month_value)/sum_hydro * sToi(resource['Energy Potential (MWh/year)']))
+			hydro_energy_map[resource['Name']] = newhydro
+
+	#'hydro_resource_name':{1:{'energy':1234,'capacity':123},...}
+
+	# where 0 index is january and so on.
+	# 'hydro_resource_name':{'erergies':[123,234,543,654],'capacity':225}
 
 	# Scale and Aggregate Wind and Solar
 	# Maybe have the option of just scaling.
@@ -113,31 +145,16 @@ def main():
 	for sitename in solarnames:
 		solar_resource_map[sitename] = database.loadVariableNumsOnly('solar',sitename)
 
-	# Create map of renewable resources in memory
-	# var_resource_map = {}
-	# for resource in resources:
-	# 	if resource['Type'].lower() == 'wind' or resource['Type'].lower() == 'solar':
-	# 		var_resource_map[resource['Name']] = database.loadVariableNumsOnly(resource['Type'].lower(),resource['Name'])
-
-	# sdf
-
 	dispatched_array = []
 	yearhour = 0
-	totalhour = 0
 	for interval in loads:
 		dispatched_resources = {'Timestamp':interval[0],'Load':interval[1],'resources':[]}
 		# [name,type,power]
-		# dispatched_resources['resources'].append(['26797_Onshore','wind',23])
-		# dispatched_resources['resources'].append(['23095_Offshore','wind',18])
-		# dispatched_resources['resources'].append(['Gasthing','gas',455])
-
-		dispatched_array.append(dispatched_resources)
 
 		power_generated = 0
 		# Consider moving the solar and wind loop outside
 		# Dispatch solar and wind
 		for resource in resources:
-			#print resource
 
 			if resource['Type'].lower() == 'solar':
 				resource_curve = []
@@ -159,9 +176,101 @@ def main():
 				dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),scaledValue])
 				power_generated += scaledValue
 
+			if resource['Type'].lower() == 'river':
+				ratedCap = float(resource['Rated Capacity (MW)'])
+				yearlyE = sToi(resource['Energy Potential (MWh/year)'])
+				capFactor = yearlyE / (ratedCap * 8760)
+				river_power = capFactor * ratedCap # Average Capacity Factor
+				dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),river_power])
+				power_generated +=  river_power 
+
+		dispatched_resources['Gen'] = power_generated
+
+		dispatched_array.append(dispatched_resources)
+
+		if yearhour == 8759:
+			yearhour = 0
+		yearhour += 1
+
+
+	# Dispatch Hydro
+	#
+	# Create month map (different for each year too)
+	# Maybe just go one month at a time.
+
+	for resource in resources:
+		if resource['Type'].lower() == 'reservoir':
+			new_dispatched_array = []
+			#print len(hydro_energy_map[resource['Name']])
+
+			prevIntervalMonth = 0 # impossible month
+			rindex = 0
+			for resourceDict in dispatched_array:
+				month = resourceDict['Timestamp'].month
+				#print month
+				if not prevIntervalMonth == month:
+					#print resourceDict
+					# print resource['Name']
+					# print month
+					energyLimit = int(float(hydro_energy_map[resource['Name']][month-1]))
+					capacity = int(float(resource['Rated Capacity (MW)']))
+
+					# an inefficient, but accurate way to determine the load per month
+					finalIndex = 0
+					monthArray = []
+					for i in xrange(rindex,rindex + 24 * 35):
+						if i == len(dispatched_array):
+							finalIndex = i
+							break
+						else:
+							#print dispatched_array[i]['Timestamp']
+							#print i
+							if not dispatched_array[i]['Timestamp'].month == month:
+								finalIndex = i
+								break
+
+					analyze_month = dispatched_array[rindex:finalIndex]
+					# print 'MONTH--------------------'
+					# for period in analyze_month:
+					# 	print period['Timestamp']
+					# 	print period['Timestamp'].month
+					#pprint(analyze_month)
+					#print len(analyze_month)
+					intervals = []
+					for rdict in analyze_month:
+						#print rdict
+						intervals.append([rdict['Timestamp'],(float(rdict['Load']) - float(rdict['Gen']))*-1])
+					#print len(intervals)
+					# Using a reversed fill valleys because we want to use up all hydro energy.
+					# When doing peak shaving we keep getting cut off at the peak
+					reducedIntervals = integrate.fillValleyArray(intervals,capacity,energyLimit)
+					# print '-----------------------'
+					# for period in reducedIntervals:
+					# 	print period[0]
+
+					#print len(reducedIntervals)
+					for i in xrange(0,len(analyze_month)):
+						interval = reducedIntervals[i]
+						analyze_month[i]['Gen'] = float(analyze_month[i]['Gen']) + interval[2]
+						analyze_month[i]['resources'].append([resource['Name'],resource['Type'].lower(),interval[2]])
+					new_dispatched_array.extend(analyze_month)
+
+				prevIntervalMonth = month
+				rindex += 1
+
+			dispatched_array = new_dispatched_array
+			#pprint(dispatched_array[0])
+			#asdfasdf
+
+
+
+
+	totalhour = 0
+	for dispatched_resources in dispatched_array:
+		# Get the dispatch order for thermal plants (coal and gas)
 		dispatchOrder = []
-		total_load = interval[1]
-		year = interval[0].year
+		total_load = dispatched_resources['Load']
+		year = dispatched_resources['Timestamp'].year
 		for resource in resources:
 			if len(resource['Heatrate (btu/kWh)']) > 0:
 				if year >= sToi(resource['In-service date']) and year <= sToi(resource['Retirement year']):
@@ -182,28 +291,35 @@ def main():
 		# 	print "%s %s %s" % (resourceArr[0],resourceArr[1]['Name'],resourceArr[1]['Type'])
 		# sdfdf
 
+		genLoad = dispatched_resources['Gen']
 		for resourceArr in dispatchOrder:
 			resource = resourceArr[1]
 			# print "%s %s" % (resourceArr[0],resource['Name'])
-			netLoad = total_load - power_generated
+			#print resource
+			netLoad = float(dispatched_resources['Load']) - genLoad
 			if netLoad < 0:
-				raise Exception('Produced more power than load. Are you sure???')
+				print 'TOO MUCH RENEWABLES'
+				#raise Exception('Produced more power than load. Are you sure???')
 			else:
 				if netLoad - float(resource['Rated Capacity (MW)']) < 0:
 					dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),netLoad])
-					power_generated += netLoad
+					genLoad += netLoad
 				else:
 					dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),float(resource['Rated Capacity (MW)'])])
-					power_generated += float(resource['Rated Capacity (MW)'])
+					genLoad += float(resource['Rated Capacity (MW)'])
 
-		if yearhour == 8759:
-			yearhour = 0
-		yearhour += 1
+		# For contracts $42.56/MWh
+		# for resourceArr in dispatchOrder:
+		# 	netLoad = total_load - power_generated
+		# 	if netLoad < 0:
+		# 		pass
+
 		totalhour += 1
 
 	print 'Got to aggregate'
 
 	# Aggregate on type
+	#
 	aggregated_dispatch = []
 	for dispatched in dispatched_array:
 		type_map = {}
@@ -228,7 +344,8 @@ def main():
 	del acopy['Timestamp']
 	del acopy['Load']
 	keys = ['Timestamp','Load']
-	keys.extend(acopy.keys())
+	#keys.extend(acopy.keys())
+	keys.extend(['river','coal','reservoir','gas','wind','solar'])
 	dict_writer = csv.DictWriter(f, keys,extrasaction='ignore')
 	dict_writer.writer.writerow(keys)
 	dict_writer.writerows(aggregated_dispatch)
@@ -279,6 +396,41 @@ def main():
 		# put them into memory
 	# make calculations
 	# Write output files
+
+def monthToNum(date):
+
+	return {
+	        'Jan' : 1,
+	        'Feb' : 2,
+	        'Mar' : 3,
+	        'Apr' : 4,
+	        'May' : 5,
+	        'Jun' : 6,
+	        'Jul' : 7,
+	        'Aug' : 8,
+	        'Sep' : 9, 
+	        'Oct' : 10,
+	        'Nov' : 11,
+	        'Dec' : 12
+	}[date]
+
+def NumToMonth(num):
+
+	return {
+	        1: 'Jan',
+	        2: 'Feb',
+	        3: 'Mar',
+	        4: 'Apr',
+	        5: 'May',
+	        6: 'Jun',
+	        7: 'Jul',
+	        8: 'Aug',
+	        9: 'Sep', 
+	        10: 'Oct',
+	        11: 'Nov',
+	        12: 'Dec'
+	}[num]
+
 
 def sToi(string):
 	if len(string) > 0:
