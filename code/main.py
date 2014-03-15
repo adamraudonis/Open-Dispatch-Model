@@ -42,8 +42,6 @@ inputs_map = {}
 
 def main():
 
-	print NumToMonth(1)
-
 	# Note: To make CSV loading more efficient you could have just one start date and
 	# then hour offsets from it. That might fail with leap years though!
 
