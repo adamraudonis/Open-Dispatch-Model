@@ -9,8 +9,7 @@ import database
 
 def main():
 	a = getHourlyEVLoad('Standard Load Fraction','PG&E High')
-
-	pprint(a)
+	importing.writeArrayToCSV('EV_Load',a)
 
 def loadArray(filename):
 	parentdir = importing.lvl_down(os.path.dirname(os.path.realpath(__file__)))
@@ -26,32 +25,27 @@ def getHourlyEVLoad(loadScenario, growthScenario):
 	indexOfLoadFactors = loadFactor[0].index(loadScenario)
 	i = 0
 	indexOfLoadGrowthScenario = 0
+
+	# Find the correct growth scenario row of array
 	for row in loadGrowth:
 		if row[0] == growthScenario:
 			indexOfLoadGrowthScenario = i
 		i += 1
-	print indexOfLoadGrowthScenario
-	print indexOfLoadFactors
 
 	toReturn = [[]]
-	toReturn[0] = ['hour','EV Load']
+	toReturn[0] = ['Hour','EV Load']
 	indexFromStart = 1
 	i = 2
 	while i < len(loadGrowth[indexOfLoadGrowthScenario]):
-		j = 1
+		j = 1 # Essentially counts hours through each year
 		while j < len(loadFactor):
-			toReturn[indexFromStart][0] = indexFromStart-1
-			toReturn[indexFromStart][1] = loadGrowth[indexOfLoadGrowthScenario][i]*loadFactor[j][indexOfLoadFactors]
+			# Linearly scale loadGrowth according to how far through the year we are
+			toReturn.append([indexFromStart-1,(float(loadGrowth[indexOfLoadGrowthScenario][i-1]) + (float(loadGrowth[indexOfLoadGrowthScenario][i])-float(loadGrowth[indexOfLoadGrowthScenario][i-1]))*float(j)/8760)*float(loadFactor[j][indexOfLoadFactors])])
 			j += 1
+			indexFromStart += 1
 		i += 1
 
 	return toReturn
-
-#def getDailyEVLoad(growthScenario):
-	# Returns [[dayMWh needed that day]]
-
-
-
 
 if __name__ == "__main__":
     main()
