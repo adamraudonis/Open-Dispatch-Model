@@ -1,7 +1,26 @@
 import csv # for testing only!!!
 import importing
 
-def main():
+def convertDispatchToArray(dispatched_array):
+	newArray = []
+	for dispatched_resources in dispatched_array:
+		newArray.append([dispatched_resources['Timestamp'],dispatched_resources['Net']])
+	return newArray
+
+def updateDispatchArray(inputarray, dispatched_array):
+	new_dispatched_array = []
+	for i in xrange(0,len(inputarray)):
+		interval = inputarray[i]
+		if interval[2] > 0:
+			dispatched_array[i]['Load'] = dispatched_array[i]['Load'] + interval[2]
+		else:
+			dispatched_array[i]['Gen'] = dispatched_array[i]['Gen'] + interval[2]
+			dispatched_array[i]['Net'] = dispatched_array[i]['Load'] - dispatched_array[i]['Gen']
+			dispatched_array[i]['resources'].append(['Battery',resource['Type'].lower(),interval[2]])
+	return dispatched_array
+
+
+def dispatchBatteries(dispatched_array, battery_power_cap, battery_energy_cap):
 
 	# tryToShavePeak([40,30,20,10,5],20,20)
 	# tryToShavePeak([40,30,20,10,5],10,20)
@@ -19,7 +38,11 @@ def main():
 	# Window shifting makes the assumption peak will not occur at midnight.
 	# Could change that pretty easily by searching between daily min to min.
 
-	inputarray = importing.inputFileArrayForName('Hourly_Load_Forecasts.xlsx')
+	#inputarray = importing.inputFileArrayForName('Hourly_Load_Forecasts.xlsx')
+
+	inputarray = convertDispatchToArray(dispatched_array)
+
+	inputarray = dispatched_array
 
 	numdays = len(inputarray) / 24
 	print 'Num days %s' % numdays
@@ -74,7 +97,7 @@ def main():
 		intervalArray.append([interval[0],interval[1],interval[2] + interval[1],interval[2]])
 
 	sorted_array = sorted(intervalArray, key=lambda interval: interval[0])
-
+	return sorted_array
 
 	f = open("test_%sMW_%sMWh.csv" % (battery_power_cap, battery_energy_cap),"wb")
 	writer = csv.writer(f, delimiter=',',quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -261,7 +284,7 @@ def shavePeakArray(inputarray, battery_power_cap, battery_energy_cap):
 		result = 0
 		if i < len(dischargeResults):
 			result = dischargeResults[i]
-		newArray.append([sorted_array[i][0],sorted_array[i][1],result])
+		newArray.append([sorted_array[i][0],sorted_array[i][1],result * -1])
 	newArray = sorted(newArray, reverse=True, key=lambda interval: interval[0])
 	return newArray
 

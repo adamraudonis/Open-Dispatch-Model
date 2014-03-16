@@ -107,6 +107,14 @@ def main():
 	# for pair in raw_hydro_pairs:
 	# 	raw_hydro_map.update({pair.lower():(float(raw_hydro_pairs[pair])/historical_sum)})
 
+
+	# Add EVs to Load
+	# - Smart charging should occur after wind
+	# Get yearly statistics
+
+
+
+
 	sum_hydro = 0
 	for value in raw_hydro:
 		sum_hydro += float(value)
@@ -145,8 +153,12 @@ def main():
 
 	dispatched_array = []
 	yearhour = 0
+	minLoad = 9999
+	maxRampUp = 0
+	maxRampDn = 0
+	index = 0
 	for interval in loads:
-		dispatched_resources = {'Timestamp':interval[0],'Load':interval[1],'resources':[]}
+		dispatched_resources = {'Timestamp':interval[0],'Load':int(float(interval[1])),'resources':[]}
 		# [name,type,power]
 
 		power_generated = 0
@@ -183,6 +195,7 @@ def main():
 				power_generated +=  river_power 
 
 		dispatched_resources['Gen'] = power_generated
+		dispatched_resources['Net'] = dispatched_resources['Load'] - power_generated
 
 		dispatched_array.append(dispatched_resources)
 
@@ -190,6 +203,24 @@ def main():
 			yearhour = 0
 		yearhour += 1
 
+		if dispatched_resources['Net'] < minLoad:
+			minLoad = dispatched_resources['Net']
+
+		if index > 0:
+			prevNet = dispatched_array[index - 1]['Net']
+			if netLoad - prevNet > 0:
+				if netLoad - prevNet > maxRampUp:
+					maxRampUp = netLoad - prevNet
+			else:
+				if prevNet - netLoad  > maxRampDn:
+					maxRampDn = prevNet - netLoad
+		index += 1
+
+	print 'Stats:'
+	print maxRampUp
+	print maxRampDn
+	print minLoad
+	sdfsdf
 
 	# Dispatch Hydro
 	#
@@ -262,7 +293,13 @@ def main():
 
 
 
+	# Dispatch Battery Here
+	#
+	integrate.dispatchBatteries(dispatched_array)
 
+
+	# Figure out dispatch order of thermal resources
+	#
 	totalhour = 0
 	for dispatched_resources in dispatched_array:
 		# Get the dispatch order for thermal plants (coal and gas)
@@ -289,6 +326,8 @@ def main():
 		# 	print "%s %s %s" % (resourceArr[0],resourceArr[1]['Name'],resourceArr[1]['Type'])
 		# sdfdf
 
+		# Dispatch the thermal resources
+		#
 		genLoad = dispatched_resources['Gen']
 		for resourceArr in dispatchOrder:
 			resource = resourceArr[1]
