@@ -1,26 +1,31 @@
 import csv # for testing only!!!
 import importing
+from pprint import pprint
 
 def convertDispatchToArray(dispatched_array):
 	newArray = []
-	for dispatched_resources in dispatched_array:
-		newArray.append([dispatched_resources['Timestamp'],dispatched_resources['Net']])
+	for i in xrange(0,len(dispatched_array)):
+		newArray.append([i,dispatched_array[i]['Net']])
 	return newArray
 
-def updateDispatchArray(inputarray, dispatched_array):
-	new_dispatched_array = []
-	for i in xrange(0,len(inputarray)):
-		interval = inputarray[i]
-		if interval[2] > 0:
-			dispatched_array[i]['Load'] = dispatched_array[i]['Load'] + interval[2]
-		else:
-			dispatched_array[i]['Gen'] = dispatched_array[i]['Gen'] + interval[2]
-			dispatched_array[i]['Net'] = dispatched_array[i]['Load'] - dispatched_array[i]['Gen']
-			dispatched_array[i]['resources'].append(['Battery',resource['Type'].lower(),interval[2]])
-	return dispatched_array
+# def updateDispatchArray(inputarray, dispatched_array):
+# 	new_dispatched_array = []
+# 	for i in xrange(0,len(inputarray)):
+# 		interval = inputarray[i]
+# 		print interval
+# 		if interval[2] > 0:
+# 			dispatched_array[i]['Load'] = dispatched_array[i]['Load'] + interval[2]
+# 		else:
+# 			dispatched_array[i]['Gen'] = dispatched_array[i]['Gen'] + interval[2]
+# 			dispatched_array[i]['Net'] = dispatched_array[i]['Load'] - dispatched_array[i]['Gen']
+# 			dispatched_array[i]['resources'].append(['Battery',resource['Type'].lower(),interval[2]])
+# 	return dispatched_array
 
 
 def dispatchBatteries(dispatched_array, battery_power_cap, battery_energy_cap):
+
+	if battery_energy_cap == 0 or battery_power_cap == 0:
+		return dispatched_array
 
 	# tryToShavePeak([40,30,20,10,5],20,20)
 	# tryToShavePeak([40,30,20,10,5],10,20)
@@ -40,35 +45,38 @@ def dispatchBatteries(dispatched_array, battery_power_cap, battery_energy_cap):
 
 	#inputarray = importing.inputFileArrayForName('Hourly_Load_Forecasts.xlsx')
 
+	print len(dispatched_array)
+
+
 	inputarray = convertDispatchToArray(dispatched_array)
 
-	inputarray = dispatched_array
+
+	print 'input %s' % len(inputarray)
+	#inputarray = dispatched_array
 
 	numdays = len(inputarray) / 24
 	print 'Num days %s' % numdays
 
 	intervalMap = {}
 
-	battery_power_cap = 500
-	battery_energy_cap = 1000
-
-	for i in xrange(0,numdays-1):
-		print ' DAY %s' % i
+	for i in xrange(0,numdays):
+		# print ' DAY %s' % i
 		#day = inputarray[i*24:(i+1)*24]
 
 		# So inefficienct! TODO: Only calculate daily max once.
 		dailyMaxIndex = indexOfDailyMax(inputarray,i)
-		print 'Daily max %s' % dailyMaxIndex
+		#print 'Daily max %s' % dailyMaxIndex
 		# for interval in day:
 		# 	print interval
 		#nextday = inputarray[(i+1)*24:(i+2)*24]
 		nextDailyMax = indexOfDailyMax(inputarray,i+1)
-		print 'Next Daily max %s' % nextDailyMax
+		#print 'Next Daily max %s' % nextDailyMax
 
-		peakSearchRange = inputarray[i*24:(i+1)*24]
+		peakSearchRange = inputarray[i*24:(i+1)*24+1]
 		valleySearchRange = inputarray[dailyMaxIndex:nextDailyMax]
 
 		sdarr = shavePeakArray(peakSearchRange,battery_power_cap,battery_energy_cap)
+
 		energyused = 0
 		for interval in sdarr:
 			energyused -= interval[2] #minus cuz we were discharging
@@ -97,20 +105,42 @@ def dispatchBatteries(dispatched_array, battery_power_cap, battery_energy_cap):
 		intervalArray.append([interval[0],interval[1],interval[2] + interval[1],interval[2]])
 
 	sorted_array = sorted(intervalArray, key=lambda interval: interval[0])
-	return sorted_array
 
-	f = open("test_%sMW_%sMWh.csv" % (battery_power_cap, battery_energy_cap),"wb")
+	f = open("test_%sMW_%sMWh2.csv" % (battery_power_cap, battery_energy_cap),"wb")
 	writer = csv.writer(f, delimiter=',',quotechar='"', quoting=csv.QUOTE_MINIMAL)
 	writer.writerow(['date','load','new_load','battery'])
 	for row in sorted_array:
 		writer.writerow(row)
+	# for i in xrange(0,17521):
+	# 	if i < len(sorted_array) and i < len(dispatched_array):
+	# 		writer.writerow([sorted_array[i][0],dispatched_array[i]['Timestamp']])
 	f.close()
+
+	print len(dispatched_array)
+	print len(sorted_array)
+	for i in xrange(0,len(dispatched_array)):
+		interval = sorted_array[i]
+		dispatched_array[i]['Net_Renew'] = dispatched_array[i]['Net']
+		if interval[3] > 0:
+			dispatched_array[i]['Net'] = dispatched_array[i]['Net'] + interval[3]
+			dispatched_array[i]['Bat_Load'] = interval[3]
+			dispatched_array[i]['resources'].append(['Battery','battery',0])
+		else:
+			dispatched_array[i]['Bat_Load'] = 0
+			dispatched_array[i]['Gen'] = dispatched_array[i]['Gen'] - interval[3]
+			dispatched_array[i]['Net'] = dispatched_array[i]['Net'] + interval[3]
+			dispatched_array[i]['resources'].append(['Battery','battery',interval[3] * -1])
+		dispatched_array[i]['Bat_Net'] = dispatched_array[i]['Net']
+	#pprint(dispatched_array[0])
+	print ' INSIDE TO OUT'
+	return dispatched_array
+
 
 	# electric boats
 
 	#fillValleys([0,10,15,30,40],10,20)
 
-#	fillValleys([0,10,15,25,30],20,20)
+	#fillValleys([0,10,15,25,30],20,20)
 
 	#fillValleys([0,10,15,25,30],10,20)
 	#fillValleys([-5,0,15,25,30],10,20)
@@ -119,12 +149,14 @@ def indexOfDailyMax(inputarray,i):
 	# day = inputarray[i*24:(i+1)*24]
 	maximum = 0
 	max_index = 0
+	ilen = len(inputarray)
 	for j in xrange(i*24,(i+1)*24):
-		testMax = inputarray[j][1]
-		# print 'Test Max %s %s' % (inputarray[j][0],inputarray[j][1])
-		if testMax > maximum:
-			maximum = testMax
-			max_index = j
+		if j < ilen:
+			testMax = inputarray[j][1]
+			# print 'Test Max %s %s' % (inputarray[j][0],inputarray[j][1])
+			if testMax > maximum:
+				maximum = testMax
+				max_index = j
 	return max_index
 
 def getDateTimeOfDailyMax(dayArray):
@@ -147,12 +179,12 @@ def fillValleyArray(inputarray, battery_power_cap, battery_energy_cap):
 	newArray = sorted(newArray, reverse=False, key=lambda interval: interval[0])
 	return newArray
 
-	f = open("test_shave1.csv","wb")
-	writer = csv.writer(f, delimiter=',',quotechar='"', quoting=csv.QUOTE_MINIMAL)
-	writer.writerow(['date','load','new_load','battery'])
-	for row in newArray:
-		writer.writerow([row[0],row[1],row[1]+row[2],row[2]])
-	f.close()
+	# f = open("test_shave1.csv","wb")
+	# writer = csv.writer(f, delimiter=',',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+	# writer.writerow(['date','load','new_load','battery'])
+	# for row in newArray:
+	# 	writer.writerow([row[0],row[1],row[1]+row[2],row[2]])
+	# f.close()
 
 # Goal is to fill all energy while minimally increasing and staying under power requirement
 # For example, if we max out power during one hour
@@ -277,23 +309,27 @@ def shavePeakArray(inputarray, battery_power_cap, battery_energy_cap):
 
 	sorted_array = sorted(inputarray, reverse=True, key=lambda interval: interval[1])
 	dischargeResults = tryToShavePeak(sorted_array,battery_power_cap,battery_energy_cap)
+
+	# The discharge results will be shorter than the sorted array
+	# treat the excess as zero
+
 	leftovere = sum(dischargeResults)
-	print 'Leftover e %s' % leftovere
+	#print 'Leftover e %s' % leftovere
 	newArray = []
-	for i in xrange(0,len(sorted_array)-1):
+	for i in xrange(0,len(sorted_array)):
 		result = 0
 		if i < len(dischargeResults):
 			result = dischargeResults[i]
 		newArray.append([sorted_array[i][0],sorted_array[i][1],result * -1])
-	newArray = sorted(newArray, reverse=True, key=lambda interval: interval[0])
+	newArray = sorted(newArray, reverse=False, key=lambda interval: interval[0])
 	return newArray
 
-	f = open("test_shave.csv","wb")
-	writer = csv.writer(f, delimiter=',',quotechar='"', quoting=csv.QUOTE_MINIMAL)
-	writer.writerow(['date','load','new_load','battery'])
-	for row in newArray:
-		writer.writerow([row[0],row[1],row[1]-row[2],row[2]])
-	f.close()
+	# f = open("test_shave.csv","wb")
+	# writer = csv.writer(f, delimiter=',',quotechar='"', quoting=csv.QUOTE_MINIMAL)
+	# writer.writerow(['date','load','new_load','battery'])
+	# for row in newArray:
+	# 	writer.writerow([row[0],row[1],row[1]-row[2],row[2]])
+	# f.close()
 
 # Goal is to reduce as much power as possible from peak
 # If we have left over energy we don't care
