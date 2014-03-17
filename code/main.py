@@ -54,7 +54,7 @@ def main():
 	gas_prices = database.loadForecastsNumOnly('gas_prices');
 	coal_prices = database.loadForecastsNumOnly('coal_prices');
 
-	resources = importing.importToDictArray('PGE_Resources.xlsx')
+	resources = importing.importToDictArray('PGE_Baseline.xlsx')
 
 	battery_power_cap = 0
 	battery_energy_cap = 0

@@ -14,7 +14,7 @@ def outputYearlyStats(aggregate_array, scenario_name, file_name, function):
 
 	outputArray = [years]
 	for key in aggregate_array[0]:
-		if not isOnof(key,['Timestamp','Load','EV_Load','Bat_Load','Renew','Pre_EV_Load','Post_EV_Ren','Bat_Net', 'Post_Hydro']):
+		if not isOnof(key,['Timestamp','EV_Load','Bat_Load','Renew','Pre_EV_Load','Post_EV_Ren','Bat_Net', 'Post_Hydro']):
 			resourceArr = [key]
 			for yearIndex in xrange(0,numYears):
 				yeararray = aggregate_array[yearIndex*8760:(yearIndex+1)*8760]
