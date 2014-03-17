@@ -285,7 +285,9 @@ def fillValleys(sorted_array, battery_power_cap, battery_energy_req):
 # Is there still reduction potential in the tier?
 #
 def canReduceFurther(sorted_array, i, battery_power_cap, battery_energy_req, battery_discharges, index):
-	if index == 15:
+	if index == 150:
+		for value in battery_discharges:
+			value = battery_energy_req / len(battery_discharges)
 		print Exception("WHILE LOOP INFINTY")
 		return False # DEBUG. Prevent while loop looping forever
 
