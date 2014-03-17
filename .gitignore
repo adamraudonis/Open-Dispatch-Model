@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 
+*.xls[xmb]
+*.xls
+
 .DS_Store
 
 # C extensions

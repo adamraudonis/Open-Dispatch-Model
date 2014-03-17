@@ -9,11 +9,14 @@ import database
 import integrate
 import csv
 
-def main():
-	a = getHourlyEVLoad('Standard Load Fraction','PG&E High')
-	importing.writeArrayToCSV('EV_Load',a)
+# def main():
+# 	a = getHourlyEVLoad('Standard Load Fraction','PG&E High')
+# 	importing.writeArrayToCSV('EV_Load',a)
 
 def addEVsToLoad(dispatched_array, EV_LoadScenario, EV_GrowthScenario):
+	if len(EV_LoadScenario) == 0 or len(EV_GrowthScenario) == 0:
+		return dispatched_array
+		
 	ev_load = getHourlyEVLoad(EV_LoadScenario, EV_GrowthScenario)
 	for i in xrange(0,len(dispatched_array)):
 		dispatched_r = dispatched_array[i]
@@ -93,17 +96,12 @@ def smart_charge(dispatched_array,EV_GrowthScenario):
 
 	return dispatched_array
 
-def loadArray(filename):
-	parentdir = importing.lvl_down(os.path.dirname(os.path.realpath(__file__)))
-	inputdir = importing.lvl_up(parentdir,'inputs')
-	fullfilepath = os.path.join(inputdir, filename)
-	return importing.excelToArray(fullfilepath)
 
 def getHourlyEVLoad(loadScenario, growthScenario):
 	evLoadFactorFilename = 'EV.xlsx'
 	evLoadGrowthFilename = 'EV_Load_Growth.xlsx'
-	loadGrowth = loadArray(evLoadGrowthFilename)
-	loadFactor = loadArray(evLoadFactorFilename)
+	loadGrowth = importing.importTo2DArray(evLoadGrowthFilename)
+	loadFactor = importing.importTo2DArray(evLoadFactorFilename)
 	indexOfLoadFactors = loadFactor[0].index(loadScenario)
 	i = 0
 	indexOfLoadGrowthScenario = 0

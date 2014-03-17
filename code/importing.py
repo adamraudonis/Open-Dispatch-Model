@@ -11,44 +11,29 @@ import time
 import dateutil.parser
 import database
 from pprint import pprint
-
+import files
 
 def forecastsToDatabase(filename,tablename):
 	startTime = int(time.time())
-	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
-	inputdir = lvl_up(parentdir,'inputs')
-	fullfilepath = os.path.join(inputdir, filename)
-	array =  excelToArray(fullfilepath)
+	array =  excelToArray(files.inputFilePath(filename))
 	thelist = convertLoadTableToList(array)
 	database.createForecastTable(tablename,thelist)
 	endTime = int(time.time())
 	print 'Loaded %s into database table %s in %s seconds' % (filename,tablename,(endTime-startTime))
-	writeArrayToCSV('testLoads', thelist)
 
 def variableProdToDatabase(filename,tablename):
 	startTime = int(time.time())
-	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
-	inputdir = lvl_up(parentdir,'inputs')
-	fullfilepath = os.path.join(inputdir, filename)
-	array =  excelToArray(fullfilepath)
+	array =  excelToArray(files.inputFilePath(filename))
 	thelist = convertVariableProdToList(array)
-	#pprint(thelist)
 	database.createVariableProdTable(tablename,thelist)
 	endTime = int(time.time())
 	print 'Loaded %s into database table %s in %s seconds' % (filename,tablename,(endTime-startTime))
-	#writeArrayToCSV('test', array)
 
 def importToDictArray(filename):
-	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
-	inputdir = lvl_up(parentdir,'inputs')
-	fullfilepath = os.path.join(inputdir, filename)
-	return excelToDictArray(fullfilepath)
+	return excelToDictArray(files.inputFilePath(filename))
 
 def importTo2DArray(filename):
-	parentdir = lvl_down(os.path.dirname(os.path.realpath(__file__)))
-	inputdir = lvl_up(parentdir,'inputs')
-	fullfilepath = os.path.join(inputdir, filename)
-	return excelToArray(fullfilepath)
+	return excelToArray(files.inputFilePath(filename))
 
 def convertVariableProdToList(productionTable):
 
@@ -114,13 +99,6 @@ def loadArrayFromCSV(filename):
 		rawArray.append([parse(row[0]),int(float(row[1]))])
 	f.close()
 	return rawArray
-
-# http://stackoverflow.com/questions/13194489/python-change-given-directory-one-level-above-or-below
-def lvl_down(path):
-    return os.path.split(path)[0]
-
-def lvl_up(path, up_dir):
-    return os.path.join(path, up_dir)
 
 def importFile():
 
@@ -217,11 +195,7 @@ def stringAtCell(sheet,row,col):
 		print 'Cell '+str(row)+', '+ str(col)+' has value:'+valueStr+' is type: ' + str(sheet.cell(row,col).ctype)
 		raise Exception('String at Cell Failed!')
 
-def parse(dateStr):
-	# result = dateStr.find('to');
-	# if result > -1:
-	# 	dateStr = dateStr[:result-2]
-	
+def parse(dateStr):	
 	error = 0
 	formatArray = ['%Y-%m-%d %H:%M:%S','%m/%d/%Y %I:%M %p','%m/%d/%y %H:%M', '%m/%d/%Y %H:%M', '%d-%b-%Y %H:%M:%S']
 	for format in formatArray:

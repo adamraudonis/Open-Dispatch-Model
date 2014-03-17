@@ -1,6 +1,7 @@
 import database	
 import csv
 from pprint import pprint
+import files
 
 def create_dispatch_array(loads):
 	dispatched_array = []
@@ -180,11 +181,11 @@ def aggregate_on_type(dispatched_array):
 	return aggregated_dispatch
 
 def dispatch_excess(dispatched_array):
-	pass
+	return dispatched_array
 
-def writeToCSV(aggregated_dispatch):
-		# Write to CSV
-	f = open('8760_dispatch.csv','wb')
+def writeToCSV(aggregated_dispatch, scenario_name):
+
+	f = open(files.outputFilePath(scenario_name,'8760_dispatch.csv'),'wb')
 	# aggregated_dispatch[0].keys()
 	# acopy = aggregated_dispatch[0].copy()
 	#del acopy['Timestamp']
