@@ -189,7 +189,7 @@ def excelToDictArray(infilePath):
 	headers = []
 	for col in range(0,s.ncols):
 		headers.append(stringAtCell(s,0,col))
-	print headers
+	# print headers
 	for row in range(1,s.nrows):
 		valuesDict = {}
 		for col in range(0,s.ncols):
