@@ -4,6 +4,7 @@ __pycache__/
 
 *.xls[xmb]
 *.xls
+*.csv
 
 .DS_Store
 

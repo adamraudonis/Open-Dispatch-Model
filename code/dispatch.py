@@ -104,7 +104,7 @@ def dispatch_thermal(dispatched_array, resources, gas_prices, coal_prices):
 		year = dispatched_resources['Timestamp'].year
 		for resource in resources:
 			if len(resource['Heatrate (btu/kWh)']) > 0:
-				if year >= sToi(resource['In-service date']) and year <= sToi(resource['Retirement year']):
+				if year >= sToi(resource['In-service date']) and year < sToi(resource['Retirement year']):
 					fuelCost = 0
 					if resource['Type'].lower() == 'gas':
 						fuelCost = float(gas_prices[totalhour]) * float(resource['Heatrate (btu/kWh)']) / 1000 # $/MMBTU to
