@@ -298,7 +298,7 @@ def writeToCSV(aggregated_dispatch, scenario_name):
 	# acopy = aggregated_dispatch[0].copy()
 	#del acopy['Timestamp']
 	#del acopy['Load']
-	keys = ['Timestamp','Pre_EV_Load','EV_Load','Load','Renew','Post_EV_Ren','Post_Hydro','Bat_Net','Bat_Load','battery','river','coal','reservoir','gas','wind','solar']
+	keys = ['Timestamp','Pre_EV_Load','EV_Load','Load','Renew','Post_EV_Ren','Post_Hydro','Bat_Net','Bat_Load','battery','river','coal','reservoir','gas','wind','solar','deficit']
 	#keys.extend(acopy.keys())
 	# keys.extend(['river','coal','reservoir','gas','wind','solar'])
 	dict_writer = csv.DictWriter(f, keys,extrasaction='ignore')

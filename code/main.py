@@ -75,22 +75,23 @@ def main():
 
 
 	#scenario_name = 'Baseline2'
-	#run_scenario('No_Coal', '', 'PGE_Baseline_No_Coal.xlsx',0,0)
-	#run_scenario('EV_Smart_No_Coal', 'Smart Charging', 'PGE_Baseline_No_Coal.xlsx',0,0)
-	#run_scenario('EV_Dumb_No_Coal', 'Standard Load Fraction', 'PGE_Baseline_No_Coal.xlsx',0,0)
-	#run_scenario('EV_Smart_No_Coal_2000W', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',0,0)
-	#run_scenario('EV_Dumb_No_Coal_2000W', 'Standard Load Fraction', 'PGE_Baseline_No_Coal_2000Wind.xlsx',0,0)
+	run_scenario('Baseline_Will', '', 'PGE_Baseline.xlsx',0,0)
+	# run_scenario('No_Coal', '', 'PGE_Baseline_No_Coal.xlsx',0,0)
+	# run_scenario('EV_Smart_No_Coal', 'Smart Charging', 'PGE_Baseline_No_Coal.xlsx',0,0)
+	# run_scenario('EV_Dumb_No_Coal', 'Standard Load Fraction', 'PGE_Baseline_No_Coal.xlsx',0,0)
+	# run_scenario('EV_Smart_No_Coal_2000W', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',0,0)
+	# run_scenario('EV_Dumb_No_Coal_2000W', 'Standard Load Fraction', 'PGE_Baseline_No_Coal_2000Wind.xlsx',0,0)
 	# run_scenario('Smart_NC_2000W_100-200B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',100,200)
 	# run_scenario('Smart_NC_2000W_100-400B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',100,400)
 
-	# run_scenario('Smart_NC_2000W_500-1000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',500,1000)
-	# run_scenario('Smart_NC_2000W_1000-2000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',1000,2000)
-	# run_scenario('Smart_NC_2000W_1000-4000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',1000,4000)
-	# run_scenario('Smart_NC_2000W_1000-8000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',1000,8000)
+	#run_scenario('Smart_NC_2000W_500-1000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',500,1000)
+	run_scenario('Smart_NC_2000W_1000-2000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',1000,2000)
+	#run_scenario('Smart_NC_2000W_1000-4000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',1000,4000)
+	#run_scenario('Smart_NC_2000W_1000-8000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',1000,8000)
 	# Note: Also, test with dumb charging
-	run_scenario('Smart_NC_2000W_2000-2001B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',2000,2001)
-	run_scenario('Smart_NC_2000W_2000-4000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',2000,4000)
-	raise Exception('done')
+	#run_scenario('Smart_NC_2000W_2000-2001B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',2000,2001)
+	#run_scenario('Smart_NC_2000W_2000-4000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',2000,4000)
+	#raise Exception('done')
 
 
 def run_scenario(scenario_name, EV_LoadScenario, resource_file, bmw, bmwh):
