@@ -60,7 +60,6 @@ def main():
 	# Small excel files we can add every time for now
 	resources = importing.importToDictArray('PGE_Baseline.xlsx')
 	year_forecasts = importing.import_year_forecasts('Year_Forecasts.xlsx') # EE, DR, DSG
-	print year_forecasts
 
 	battery_power_cap = 0
 	battery_energy_cap = 0
@@ -156,18 +155,9 @@ def main():
 	#
 	dispatch.writeToCSV(aggregate_array, scenario_name)
 
-	outputArray = []
-	header = []
-	for resource in dispatched_array[0]['resources']:
-		header.append(resource[0])
-	outputArray.append(header)
-
-	for dispatched_resources in dispatched_array:
-		rarr = []
-		for resource in dispatched_resources['resources']:
-			rarr.append(resource[2])
-		outputArray.append(rarr)
-	files.writeArrayToCSV(files.outputFilePath(scenario_name,'8760_All_Sources'),outputArray)
+	# (Optional)
+	#
+	# dispatch.writeAllToCSV(dispatched_array, scenario_name)
 
 	print 'Outputted files.'
 
