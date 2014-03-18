@@ -5,6 +5,7 @@ __pycache__/
 *.xls[xmb]
 *.xls
 *.csv
+*.db
 
 .DS_Store
 

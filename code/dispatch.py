@@ -7,7 +7,7 @@ import integrate
 def create_dispatch_array(loads):
 	dispatched_array = []
 	for interval in loads:
-		dispatched_array.append({'Timestamp':interval[0],'Load':int(float(interval[1])),'Pre_EV_Load':int(float(interval[1])),'resources':[]}) # [name,type,power]
+		dispatched_array.append({'Timestamp':interval[0],'Load':int(float(interval[1])),'Net':int(float(interval[1])),'Gen':0,'Pre_EV_Load':int(float(interval[1])),'resources':[]}) # [name,type,power]
 	return dispatched_array
 
 def add_renewables(dispatched_array, resources):
@@ -94,6 +94,43 @@ def add_renewables(dispatched_array, resources):
 	print minLoad
 	return new_dispatched_array
 
+def print_ramp_rate_stats(dispatched_array):
+
+	maxRampUp = 0
+	maxRampDn = 0
+	minLoad = 9999
+	index = 0
+	upTime = ''
+	downTime = ''
+	minTime = ''
+	for dispatched_resources in dispatched_array:
+		if dispatched_resources['Timestamp'].year == 2034:
+
+			if dispatched_resources['Net'] < minLoad:
+				minLoad = dispatched_resources['Net']
+				minTime = dispatched_resources['Timestamp']
+
+			if index > 0:
+				netLoad = dispatched_resources['Net']
+				prevNet = dispatched_array[index - 1]['Net']
+				if netLoad - prevNet > 0:
+					if netLoad - prevNet > maxRampUp:
+						maxRampUp = netLoad - prevNet
+						upTime = dispatched_resources['Timestamp']
+				else:
+					if prevNet - netLoad  > maxRampDn:
+						maxRampDn = prevNet - netLoad
+						downTime = dispatched_resources['Timestamp']
+		index += 1
+
+	print 'Stats:'
+	print maxRampUp
+	print maxRampDn
+	print minLoad
+	print 'Dates:'
+	print upTime
+	print downTime
+	print minTime
 
 def dispatch_thermal(dispatched_array, resources, gas_prices, coal_prices):
 
@@ -105,7 +142,6 @@ def dispatch_thermal(dispatched_array, resources, gas_prices, coal_prices):
 		year = dispatched_resources['Timestamp'].year
 		for resource in resources:
 			if len(resource['Heatrate (btu/kWh)']) > 0:
-				if year >= sToi(resource['In-service date']) and year < sToi(resource['Retirement year']):
 					fuelCost = 0
 					if resource['Type'].lower() == 'gas':
 						fuelCost = float(gas_prices[totalhour]) * float(resource['Heatrate (btu/kWh)']) / 1000 # $/MMBTU to
@@ -128,17 +164,30 @@ def dispatch_thermal(dispatched_array, resources, gas_prices, coal_prices):
 		netLoad = float(dispatched_resources['Net'])
 		for resourceArr in dispatchOrder:
 			resource = resourceArr[1]
-			if netLoad <= 0:
-				dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),0])
-				# print 'TOO MUCH RENEWABLES'
-				#raise Exception('Produced more power than load. Are you sure???')
-			else:
-				if netLoad - float(resource['Rated Capacity (MW)']) < 0:
-					dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),netLoad])
-				else:
-					dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),float(resource['Rated Capacity (MW)'])])
-					netLoad -= float(resource['Rated Capacity (MW)'])
+			if year >= sToi(resource['In-service date']) and year < sToi(resource['Retirement year']):
 
+				if netLoad <= 0:
+					dispatched_resources['AvoidedCost'] = 0
+					dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),0])
+					# print 'TOO MUCH RENEWABLES'
+					#raise Exception('Produced more power than load. Are you sure???')
+				else:
+					if netLoad - float(resource['Rated Capacity (MW)']) < 0:
+						dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),netLoad])
+						dispatched_resources['AvoidedCost'] = resourceArr[0]
+						netLoad = 0
+					else:
+						dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),float(resource['Rated Capacity (MW)'])])
+						netLoad -= float(resource['Rated Capacity (MW)'])
+			else:
+				dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),0])
+
+
+		if not 'AvoidedCost' in dispatched_resources:
+			# Make this the market spot price
+			dispatched_resources['AvoidedCost'] = 20.0
+
+		dispatched_resources['Net'] = netLoad
 		# For contracts $42.56/MWh
 		# for resourceArr in dispatchOrder:
 		# 	netLoad = total_load - power_generated
@@ -238,6 +287,8 @@ def dispatch_yearly_forecast(dispatched_array, yearly_forecasts, d_type, factor)
 
 
 def dispatch_excess(dispatched_array):
+	for dispatched_resources in dispatched_array:
+		dispatched_resources['resources'].append(['Deficit','deficit',dispatched_resources['Net']])
 	return dispatched_array
 
 def writeToCSV(aggregated_dispatch, scenario_name):
@@ -255,16 +306,26 @@ def writeToCSV(aggregated_dispatch, scenario_name):
 	dict_writer.writerows(aggregated_dispatch)
 	f.close()
 
+# DEBUG GAS ONLY
 def writeAllToCSV(dispatched_array, scenario_name):
 	outputArray = []
 	header = []
+	header.append("AvoidedCost")
 	for resource in dispatched_array[0]['resources']:
+		#if resource[1] == 'gas':
 		header.append(resource[0])
 	outputArray.append(header)
 
+	# header2 = []
+	# for resource in dispatched_array[0]['resources']:
+	# 	header2.append(resource[1])
+	# outputArray.append(header2)
+
 	for dispatched_resources in dispatched_array:
 		rarr = []
+		rarr.append(dispatched_resources["AvoidedCost"])
 		for resource in dispatched_resources['resources']:
+			#if resource[1] == 'gas':
 			rarr.append(resource[2])
 		outputArray.append(rarr)
 	files.writeArrayToCSV(files.outputFilePath(scenario_name,'8760_All_Sources'),outputArray)

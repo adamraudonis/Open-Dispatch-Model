@@ -8,7 +8,7 @@ from pprint import pprint
 import database
 import integrate
 import csv
-
+import files
 # def main():
 # 	a = getHourlyEVLoad('Standard Load Fraction','PG&E High')
 # 	importing.writeArrayToCSV('EV_Load',a)
@@ -18,6 +18,8 @@ def addEVsToLoad(dispatched_array, EV_LoadScenario, EV_GrowthScenario):
 		return dispatched_array
 		
 	ev_load = getHourlyEVLoad(EV_LoadScenario, EV_GrowthScenario)
+	# files.writeArrayToCSV('evtest.csv', ev_load)
+	# sdfsdf
 	for i in xrange(0,len(dispatched_array)):
 		dispatched_r = dispatched_array[i]
 		dispatched_r['Load'] = dispatched_r['Load'] + ev_load[i]
@@ -120,7 +122,7 @@ def getHourlyEVLoad(loadScenario, growthScenario):
 		j = 1 # Essentially counts hours through each year
 		while j < len(loadFactor):
 			# Linearly scale loadGrowth according to how far through the year we are
-			toReturn.append(100*(float(loadGrowth[indexOfLoadGrowthScenario][i-1]) + (float(loadGrowth[indexOfLoadGrowthScenario][i])-float(loadGrowth[indexOfLoadGrowthScenario][i-1]))*float(j)/8760)*float(loadFactor[j][indexOfLoadFactors]))
+			toReturn.append((float(loadGrowth[indexOfLoadGrowthScenario][i-1]) + (float(loadGrowth[indexOfLoadGrowthScenario][i])-float(loadGrowth[indexOfLoadGrowthScenario][i-1]))*float(j)/8760)*float(loadFactor[j][indexOfLoadFactors]))
 			j += 1
 			indexFromStart += 1
 		i += 1

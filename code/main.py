@@ -39,7 +39,7 @@ def main():
 		#importing.forecastsToDatabase('Hourly_EE_Forecasts.xlsx', 'ee')
 
 		#importing.forecastsToDatabase('Test_Hourly_Load.xlsx', 'loads')
-		#importing.forecastsToDatabase('Test_Hourly_Load2.xlsx', 'loads')
+		# importing.forecastsToDatabase('Test_Hourly_Load2.xlsx', 'loads')
 
 		#importing.forecastsToDatabase('Hourly_Gas_Forecasts.xlsx', 'gas_prices')
 		#importing.forecastsToDatabase('Hourly_Coal_Forecasts.xlsx', 'coal_prices')
@@ -53,28 +53,68 @@ def main():
 
 	print 'Loading from database'
 	
+
+
+	# Small excel files we can add every time for now
+	#resources = importing.importToDictArray('PGE_Baseline.xlsx')
+	#resources = importing.importToDictArray('PGE_Baseline_No_Coal.xlsx')
+	#resources = importing.importToDictArray('PGE_Baseline_No_Coal_2000Wind.xlsx')
+
+
+
+
+
+	EV_LoadScenario = 'Standard Load Fraction'
+	#EV_LoadScenario = 'Work-Heavy Load Fraction'
+	#EV_LoadScenario = 'Smart Charging'
+	#EV_GrowthScenario = 'PG&E High'
+	#EV_LoadScenario = ''
+
+	#scenario_name = 'EV_Smart_No_Coal_2000W'
+	#scenario_name = 'EV_Dumb_No_Coal_2000W'
+
+
+	#scenario_name = 'Baseline2'
+	#run_scenario('No_Coal', '', 'PGE_Baseline_No_Coal.xlsx',0,0)
+	#run_scenario('EV_Smart_No_Coal', 'Smart Charging', 'PGE_Baseline_No_Coal.xlsx',0,0)
+	#run_scenario('EV_Dumb_No_Coal', 'Standard Load Fraction', 'PGE_Baseline_No_Coal.xlsx',0,0)
+	#run_scenario('EV_Smart_No_Coal_2000W', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',0,0)
+	#run_scenario('EV_Dumb_No_Coal_2000W', 'Standard Load Fraction', 'PGE_Baseline_No_Coal_2000Wind.xlsx',0,0)
+	# run_scenario('Smart_NC_2000W_100-200B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',100,200)
+	# run_scenario('Smart_NC_2000W_100-400B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',100,400)
+
+	# run_scenario('Smart_NC_2000W_500-1000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',500,1000)
+	# run_scenario('Smart_NC_2000W_1000-2000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',1000,2000)
+	# run_scenario('Smart_NC_2000W_1000-4000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',1000,4000)
+	# run_scenario('Smart_NC_2000W_1000-8000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',1000,8000)
+	# Note: Also, test with dumb charging
+	run_scenario('Smart_NC_2000W_2000-2001B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',2000,2001)
+	run_scenario('Smart_NC_2000W_2000-4000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',2000,4000)
+	raise Exception('done')
+
+
+def run_scenario(scenario_name, EV_LoadScenario, resource_file, bmw, bmwh):
+	print '----'
+	print scenario_name
+	if EV_LoadScenario == '':
+		print 'No EVs'
+	print resource_file
+	print '----'
+	EV_GrowthScenario = 'PG&E High'
+
+	battery_power_cap = bmw
+	battery_energy_cap = bmwh
+
+	resources = importing.importToDictArray(resource_file)
+	year_forecasts = importing.import_year_forecasts('Year_Forecasts.xlsx') # EE, DR, DSG
+	
 	loads = database.loadTableAll('loads'); # date, power (MW)
 	gas_prices = database.loadForecastsNumOnly('gas_prices');
 	coal_prices = database.loadForecastsNumOnly('coal_prices');
 
-	# Small excel files we can add every time for now
-	resources = importing.importToDictArray('PGE_Baseline.xlsx')
-	year_forecasts = importing.import_year_forecasts('Year_Forecasts.xlsx') # EE, DR, DSG
-
-	battery_power_cap = 0
-	battery_energy_cap = 0
-
-	#EV_LoadScenario = 'Standard Load Fraction'
-	#EV_LoadScenario = 'Smart Charging'
-	EV_LoadScenario = ''
-	EV_GrowthScenario = ''
-	#EV_GrowthScenario = 'PG&E High'
-
-	scenario_name = 'Baseload'
-
 	dispatched_array = dispatch.create_dispatch_array(loads)
 
-	if not EV_LoadScenario == 'Smart Charging':
+	if not EV_LoadScenario == 'Smart Charging' and len(EV_LoadScenario) > 0:
 		print 'Adding Dumb EV Charging...'
 		dispatched_array = ev_load.addEVsToLoad(dispatched_array, EV_LoadScenario,EV_GrowthScenario)
 
@@ -104,7 +144,7 @@ def main():
 	#
 	dispatched_array = hydro.dispatchReservoirs(dispatched_array,resources)
 
-
+	#dispatch.print_ramp_rate_stats(dispatched_array)
 
 	print 'Dispatching Battery Resources...'
 
@@ -112,6 +152,8 @@ def main():
 	#
 	# Note: You could dispatch li, followed by flow
 	dispatched_array = integrate.dispatchBatteries(dispatched_array, battery_power_cap, battery_energy_cap)
+
+	dispatch.print_ramp_rate_stats(dispatched_array)
 
 
 	print 'Dispatching Long-term Contracts ...'
@@ -163,7 +205,7 @@ def main():
 
 	# (Optional)
 	#
-	# dispatch.writeAllToCSV(dispatched_array, scenario_name)
+	dispatch.writeAllToCSV(dispatched_array, scenario_name)
 
 	# Verification
 	if not len(dispatched_array) == len(loads):
