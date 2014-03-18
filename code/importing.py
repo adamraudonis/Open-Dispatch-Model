@@ -29,6 +29,14 @@ def variableProdToDatabase(filename,tablename):
 	endTime = int(time.time())
 	print 'Loaded %s into database table %s in %s seconds' % (filename,tablename,(endTime-startTime))
 
+def import_year_forecasts(filename):
+	array = excelToArray(files.inputFilePath(filename))
+	forecast_map = {}
+	for row in array:
+		forecast_map[row[0]] = row[1:]
+	return forecast_map
+
+
 def importToDictArray(filename):
 	return excelToDictArray(files.inputFilePath(filename))
 
@@ -60,7 +68,7 @@ def convertLoadTableToList(loadTable):
 	header = []
 	intervals = []
 	# print int(loadTable[1])
-	timestamp = parse('01/01/%s 00:00' % int(float(loadTable[0][1])))
+	timestamp = parse('12/31/%s 23:00' % (int(float(loadTable[0][1]))-1))
 	for colIndex in xrange(0,len(loadTable[0])):
 		if colIndex > 0:
 			rowIndex = 0

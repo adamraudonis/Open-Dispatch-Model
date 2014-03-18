@@ -8,6 +8,7 @@ def yearlyCapacity(aggregate_array, scenario_name):
 
 def outputYearlyStats(aggregate_array, scenario_name, file_name, function):
 	numYears = len(aggregate_array) / 8760
+	print numYears
 	startYear = aggregate_array[0]['Timestamp'].year
 	years = range(startYear,startYear+numYears)
 	years.insert(0, '')

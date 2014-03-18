@@ -2,6 +2,7 @@ import database
 import csv
 from pprint import pprint
 import files
+import integrate
 
 def create_dispatch_array(loads):
 	dispatched_array = []
@@ -9,7 +10,7 @@ def create_dispatch_array(loads):
 		dispatched_array.append({'Timestamp':interval[0],'Load':int(float(interval[1])),'Pre_EV_Load':int(float(interval[1])),'resources':[]}) # [name,type,power]
 	return dispatched_array
 
-def dispatch_renewables(dispatched_array, resources):
+def add_renewables(dispatched_array, resources):
 	wind_resource_map = {}
 	windnames = database.getVarSiteNames('wind')
 	for sitename in windnames:
@@ -176,9 +177,50 @@ def aggregate_on_type(dispatched_array):
 		# dispatched_resources['Pre_EV_Load'] = dispatched['Pre_EV_Load']
 		# dispatched_resources['Bat_Net'] = dispatched['Bat_Net']
 
-
 		aggregated_dispatch.append(dispatched_resources)
 	return aggregated_dispatch
+
+def add_efficiency(dispatched_array, yearly_forecasts):
+	startYear = dispatched_array[0]['Timestamp'].year
+	
+	for dictionary in dispatched_array:
+		yearIndex = dictionary['Timestamp'].year - startYear
+		value = yearly_forecasts['EE'][yearIndex]
+		dictionary['resources'].append(['Efficiency','EE',float(value)])
+	return dispatched_array
+
+def dispatch_DR(dispatched_array, yearly_forecasts):
+	return dispatch_yearly_forecast(dispatched_array, yearly_forecasts, 'DR', 100)
+
+def dispatch_DSG(dispatched_array, yearly_forecasts):
+	return dispatch_yearly_forecast(dispatched_array, yearly_forecasts, 'DSG', 50)
+
+def dispatch_yearly_forecast(dispatched_array, yearly_forecasts, d_type, factor):
+
+	startYear = dispatched_array[0]['Timestamp'].year
+	numYears = len(dispatched_array) / 8760
+
+	for yearIndex in xrange(0,numYears):
+		yeararray = dispatched_array[yearIndex*8760:(yearIndex+1)*8760]
+		battery_power_cap = float(yearly_forecasts[d_type][yearIndex]) # Power Value
+		battery_energy_cap = factor * battery_power_cap	# Energy Limit 50 hrs a year if DSG
+
+		inputArray = integrate.convertDispatchToArray(yeararray)
+		peakArray = integrate.shavePeakArray(inputArray, battery_power_cap, battery_energy_cap)
+		if not len(inputArray) == len(peakArray):
+			print len(inputArray)
+			print len(peakArray)
+			raise Exception("DATE ERROR")
+
+		for i in xrange(0,len(peakArray)):
+			interval = peakArray[i]
+			dis_resources = dispatched_array[yearIndex*8760+i]
+			dis_resources['Net'] = dis_resources['Net'] + interval[2]
+			dis_resources['resources'].append([d_type,d_type,interval[2] * -1])
+
+	return dispatched_array
+
+
 
 def dispatch_excess(dispatched_array):
 	return dispatched_array
