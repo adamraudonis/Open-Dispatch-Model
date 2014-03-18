@@ -182,7 +182,7 @@ def aggregate_on_type(dispatched_array):
 
 def add_efficiency(dispatched_array, yearly_forecasts):
 	startYear = dispatched_array[0]['Timestamp'].year
-	
+
 	for dictionary in dispatched_array:
 		yearIndex = dictionary['Timestamp'].year - startYear
 		value = yearly_forecasts['EE'][yearIndex]
@@ -239,6 +239,20 @@ def writeToCSV(aggregated_dispatch, scenario_name):
 	dict_writer.writer.writerow(keys)
 	dict_writer.writerows(aggregated_dispatch)
 	f.close()
+
+def writeAllToCSV(dispatched_array, scenario_name):
+	outputArray = []
+	header = []
+	for resource in dispatched_array[0]['resources']:
+		header.append(resource[0])
+	outputArray.append(header)
+
+	for dispatched_resources in dispatched_array:
+		rarr = []
+		for resource in dispatched_resources['resources']:
+			rarr.append(resource[2])
+		outputArray.append(rarr)
+	files.writeArrayToCSV(files.outputFilePath(scenario_name,'8760_All_Sources'),outputArray)
 
 def sToi(string):
 	if len(string) > 0:
