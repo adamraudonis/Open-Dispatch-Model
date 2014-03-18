@@ -16,7 +16,6 @@ def dispatchReservoirs(dispatched_array, resources):
 	hydro_energy_map = {}
 	for resource in resources:
 		if resource['Type'].lower() == 'reservoir':
-			print 'inside'
 			newhydro = []
 			for month_value in raw_hydro:
 				newhydro.append(float(month_value)/sum_hydro * sToi(resource['Energy Potential (MWh/year)']))

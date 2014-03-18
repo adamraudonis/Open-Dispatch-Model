@@ -168,7 +168,7 @@ def aggregate_on_type(dispatched_array):
 			if thing in dispatched:
 				dispatched_resources[thing] = dispatched[thing]
 
-		dispatched_resources['Post_EV_Ren'] = dispatched['Renew'] + dispatched['EV_Load']
+		# dispatched_resources['Post_EV_Ren'] = dispatched['Renew'] + dispatched['EV_Load']
 		# dispatched_resources['Timestamp'] = dispatched['Timestamp']
 		# dispatched_resources['Load'] = dispatched['Load']
 		# dispatched_resources['EV_Load'] = dispatched['EV_Load']
@@ -180,13 +180,28 @@ def aggregate_on_type(dispatched_array):
 		aggregated_dispatch.append(dispatched_resources)
 	return aggregated_dispatch
 
+# Assumes it is going first!
 def add_efficiency(dispatched_array, yearly_forecasts):
 	startYear = dispatched_array[0]['Timestamp'].year
 
 	for dictionary in dispatched_array:
 		yearIndex = dictionary['Timestamp'].year - startYear
-		value = yearly_forecasts['EE'][yearIndex]
-		dictionary['resources'].append(['Efficiency','EE',float(value)])
+		value = float(yearly_forecasts['EE'][yearIndex])
+		dictionary['resources'].append(['Efficiency','EE',value])
+		dictionary['Net'] = dictionary['Load'] - value
+	return dispatched_array
+
+def dispatch_contracts(dispatched_array, resources):
+	for dispatched_resources in dispatched_array:
+		for resource in resources:
+			if resource['Type'].lower() == "contract":
+				year = dispatched_resources['Timestamp'].year
+				if year >= sToi(resource['In-service date']) and year < sToi(resource['Retirement year']):
+					value = float(resource['Rated Capacity (MW)'])
+					dispatched_resources['resources'].append([resource['Name'],'contracts',value])
+					dispatched_resources['Net'] = dispatched_resources['Net'] - value
+				else:
+					dispatched_resources['resources'].append([resource['Name'],'contracts',0])
 	return dispatched_array
 
 def dispatch_DR(dispatched_array, yearly_forecasts):

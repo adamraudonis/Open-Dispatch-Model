@@ -64,73 +64,75 @@ def main():
 	battery_power_cap = 0
 	battery_energy_cap = 0
 
-	EV_LoadScenario = 'Standard Load Fraction'
-	EV_LoadScenario = 'Smart Charging'
-	EV_GrowthScenario = 'PG&E High'
+	#EV_LoadScenario = 'Standard Load Fraction'
+	#EV_LoadScenario = 'Smart Charging'
+	EV_LoadScenario = ''
+	EV_GrowthScenario = ''
+	#EV_GrowthScenario = 'PG&E High'
 
 	scenario_name = 'Baseload'
 
-
 	dispatched_array = dispatch.create_dispatch_array(loads)
 
-	print len(dispatched_array)
-
-
 	if not EV_LoadScenario == 'Smart Charging':
+		print 'Adding Dumb EV Charging...'
 		dispatched_array = ev_load.addEVsToLoad(dispatched_array, EV_LoadScenario,EV_GrowthScenario)
 
-	print len(dispatched_array)
-
+	print 'Adding Energy Efficiency...'
 
 	# Dispatch Efficiency
 	#
 	dispatched_array = dispatch.add_efficiency(dispatched_array, year_forecasts)
 
-	print len(dispatched_array)
-
+	print 'Adding Renewables...'
 
 	# Dispatch all non-dispatachable resources such as solar, wind, and river
 	#
 	dispatched_array = dispatch.add_renewables(dispatched_array,resources)
 
-	print len(dispatched_array)
-
 
 	# Smartly charge EVs to minimize peaks and fill valleys
 	#
 	if EV_LoadScenario == 'Smart Charging':
+		print 'Dispatching Smart EV Charging...'
 		dispatched_array = ev_load.smart_charge(dispatched_array,EV_GrowthScenario)
 
-	print len(dispatched_array)
 
+	print 'Dispatching Hydro Reservoirs...'
 
 	# Dispatch Reservoir Dispatchable Hydro
 	#
 	dispatched_array = hydro.dispatchReservoirs(dispatched_array,resources)
 
-	print 'HYDRO'
-	print len(dispatched_array)
 
+
+	print 'Dispatching Battery Resources...'
 
 	# Dispatch Battery Here
 	#
 	# Note: You could dispatch li, followed by flow
 	dispatched_array = integrate.dispatchBatteries(dispatched_array, battery_power_cap, battery_energy_cap)
 
-	print len(dispatched_array)
 
+	print 'Dispatching Long-term Contracts ...'
+
+	# Dispatch Long-term Contracts
+	#
+	dispatched_array = dispatch.dispatch_contracts(dispatched_array, resources)
+
+	print 'Dispatching Thermal Resources...'
 
 	# Determine order and dispatch thermal resources
 	#
 	dispatched_array = dispatch.dispatch_thermal(dispatched_array,resources, gas_prices, coal_prices)
 
-
-	print len(dispatched_array)
-
+	print 'Dispatching DR...'
 
 	# Dispatch demand response
 	#
 	dispatched_array = dispatch.dispatch_DR(dispatched_array, year_forecasts)
+
+	print 'Dispatching DSG...'
 
 	# Dispatch distributed standby generation
 	#
@@ -140,16 +142,20 @@ def main():
 	#
 	dispatched_array = dispatch.dispatch_excess(dispatched_array)
 
-	print len(dispatched_array)
+	print 'Aggregating by type...'
 
 	# Aggregate by type (reservoir, river, wind, solar, gas, coal, battery)
 	#
 	aggregate_array = dispatch.aggregate_on_type(dispatched_array)
 
+	print 'Generating yearly statistics...'
+
 	# Get yearly statistics on deificits ,etc
 	#
 	statistics.yearlyEnergy(aggregate_array, scenario_name)
 	statistics.yearlyCapacity(aggregate_array, scenario_name)
+
+	print 'Generating 8760_dispatch.csv...'
 
 	# (Optional) Write dispatch to file
 	#
@@ -158,6 +164,10 @@ def main():
 	# (Optional)
 	#
 	# dispatch.writeAllToCSV(dispatched_array, scenario_name)
+
+	# Verification
+	if not len(dispatched_array) == len(loads):
+		raise Exception("Interval length mismatch! Error somewhere.")
 
 	print 'Outputted files.'
 
