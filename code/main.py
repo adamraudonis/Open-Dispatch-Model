@@ -76,7 +76,7 @@ def main():
 
 	#scenario_name = 'Baseline2'
 	run_scenario('Baseline_Will', '', 'PGE_Baseline.xlsx',0,0)
-	# run_scenario('No_Coal', '', 'PGE_Baseline_No_Coal.xlsx',0,0)
+	run_scenario('No_Coal', '', 'PGE_Baseline_No_Coal.xlsx',0,0)
 	# run_scenario('EV_Smart_No_Coal', 'Smart Charging', 'PGE_Baseline_No_Coal.xlsx',0,0)
 	# run_scenario('EV_Dumb_No_Coal', 'Standard Load Fraction', 'PGE_Baseline_No_Coal.xlsx',0,0)
 	# run_scenario('EV_Smart_No_Coal_2000W', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',0,0)
