@@ -52,33 +52,9 @@ def main():
 		#importing.resourceInfoToDatabase('PGE_Resource.xlsx','resources')
 
 	print 'Loading from database'
-	
 
-
-	# Small excel files we can add every time for now
-	#resources = importing.importToDictArray('PGE_Baseline.xlsx')
-	#resources = importing.importToDictArray('PGE_Baseline_No_Coal.xlsx')
-	#resources = importing.importToDictArray('PGE_Baseline_No_Coal_2000Wind.xlsx')
-
-
-
-
-
-	EV_LoadScenario = 'Standard Load Fraction'
-	#EV_LoadScenario = 'Work-Heavy Load Fraction'
-	#EV_LoadScenario = 'Smart Charging'
-	#EV_GrowthScenario = 'PG&E High'
-	#EV_LoadScenario = ''
-
-	#scenario_name = 'EV_Smart_No_Coal_2000W'
-	#scenario_name = 'EV_Dumb_No_Coal_2000W'
-
-
-	#scenario_name = 'Baseline2'
 	run_scenario('Baseline_Will', '', 'PGE_Baseline.xlsx',0,0)
-		#run_scenario('Baseline_', '', 'PGE_Baseline.xlsx',0,0)
-
-	# run_scenario('No_Coal', '', 'PGE_Baseline_No_Coal.xlsx',0,0)
+	run_scenario('No_Coal', '', 'PGE_Baseline_No_Coal.xlsx',0,0)
 	# run_scenario('EV_Smart_No_Coal', 'Smart Charging', 'PGE_Baseline_No_Coal.xlsx',0,0)
 	# run_scenario('EV_Dumb_No_Coal', 'Standard Load Fraction', 'PGE_Baseline_No_Coal.xlsx',0,0)
 	# run_scenario('EV_Smart_No_Coal_2000W', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',0,0)
@@ -93,8 +69,6 @@ def main():
 	# Note: Also, test with dumb charging
 	#run_scenario('Smart_NC_2000W_2000-2001B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',2000,2001)
 	#run_scenario('Smart_NC_2000W_2000-4000B', 'Smart Charging', 'PGE_Baseline_No_Coal_2000Wind.xlsx',2000,4000)
-	#raise Exception('done')
-
 
 def run_scenario(scenario_name, EV_LoadScenario, resource_file, bmw, bmwh):
 	print '----'
@@ -217,7 +191,6 @@ def run_scenario(scenario_name, EV_LoadScenario, resource_file, bmw, bmwh):
 	supply_curves2.generateSupplyCurves(dispatched_array, resources)
 
 	print 'Outputted files.'
-
 
 
 if __name__ == "__main__":
