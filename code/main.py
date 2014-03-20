@@ -36,13 +36,10 @@ def main():
 		print 'Reloading all data from excel files'
 		# These are 8760 data from the start year till the end year (MW)
 		importing.forecastsToDatabase('Hourly_Load_Forecasts.xlsx', 'loads')
-		#importing.forecastsToDatabase('Hourly_EE_Forecasts.xlsx', 'ee')
 
-		#importing.forecastsToDatabase('Test_Hourly_Load.xlsx', 'loads')
-		# importing.forecastsToDatabase('Test_Hourly_Load2.xlsx', 'loads')
-
-		#importing.forecastsToDatabase('Hourly_Gas_Forecasts.xlsx', 'gas_prices')
-		#importing.forecastsToDatabase('Hourly_Coal_Forecasts.xlsx', 'coal_prices')
+		#importing.forecastsToDatabase('Test_Hourly_Load2.xlsx', 'loads')
+		importing.forecastsToDatabase('Hourly_Gas_Forecasts.xlsx', 'gas_prices')
+		importing.forecastsToDatabase('Hourly_Coal_Forecasts.xlsx', 'coal_prices')
 
 		# These are 8760 data for ONE year that should be assumed constant for all years (MW)
 		# There are different sites in the file

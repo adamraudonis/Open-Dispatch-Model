@@ -24,7 +24,7 @@ def getYearlyLoads():
 
 
 def outputLoadResourceTable():
-	resources = importing.importToDictArray('PGE_Baseline.xlsx')
+	resources = importing.importToDictArray('PGE_Baseline_No_Coal_2000Wind.xlsx')
 
 	yearlyLoads = getYearlyLoads()
 
@@ -81,7 +81,7 @@ def outputLoadResourceTable():
 	for i in xrange(1,len(yearlyLoads)+1):
 		ws.col(i).width = 1500
 
-	wb.save('L&R_Table.xls')
+	wb.save('L&R_Table_2000W.xls')
 
 def sToi(string):
 	if len(string) > 0:
