@@ -72,11 +72,12 @@ def generateSupplyCurve(resourcesFilename, dispatchFilename, startYear, endYear)
 	LCOE = {}
 
 	#pprint(resources)
-
+	typemap = {}
 	for resource in resources:
 		###### ONLY DO IF IN SERVICE!!!!!!!
 		if resource['Economic Life (Years)'] != '' and float(resource['In-service date']) <= startYear and float(resource['Retirement year']) >= endYear:
 			LCOE[resource['Name']] = calculateLCOE(resource['Name'], float(resource['WACC (%)']), float(resource['Economic Life (Years)']), float(resource['Rated Capacity (MW)']), float(resource['Overnight Capital Cost ($/kW)']), float(resource['Fixed O&M ($/kW)']), float(resource['Var O&M ($/MWh)']), dispatch, startYear, endYear)
+			typemap[resource['Name']] = resource['Type']
 
 	# print 'Length of LCOE:'
 	# print len(LCOE) # how many keys in dict
@@ -90,7 +91,7 @@ def generateSupplyCurve(resourcesFilename, dispatchFilename, startYear, endYear)
 	
 	# in netLCOE, 'Name' points to [netLCOE] for each hour of the year
 	# in dispatch, 'Name' is in dispatch[0][something] and production each hour is below that
-	joinedArray = join(netLCOE, dispatch)
+	joinedArray = join(netLCOE, dispatch, typemap)
 	# print 'Length of joinedArray:'
 	# print len(joinedArray[0])
 	sortedArray = sort(joinedArray) # sorts in order of increasing net LCOE
@@ -101,7 +102,7 @@ def generateSupplyCurve(resourcesFilename, dispatchFilename, startYear, endYear)
 	# print len(supplyCurve[0])
 	return supplyCurve
 
-def join(netLCOE, dispatch):
+def join(netLCOE, dispatch, typemap):
 	joinedArray = []
 
 	for name in netLCOE.keys():
@@ -111,7 +112,7 @@ def join(netLCOE, dispatch):
 			hour = 0
 			for row in dispatch[1:]:
 				# print hour
-				joinedArray.append([name, netLCOE[name][hour], row[indexOfResource]])
+				joinedArray.append([name, netLCOE[name][hour], row[indexOfResource],typemap[name]])
 				hour += 1
 
 	return joinedArray
@@ -167,7 +168,7 @@ def addGen(sortedArray):
 	sumMWh = 0
 	for i in sortedArray:
 		sumMWh += float(i[2])
-		addedArray.append([i[0], i[1], sumMWh])
+		addedArray.append([i[0], i[1], sumMWh,i[3]])
 	return addedArray
 
 def outputToExcel(supplyCurve, outputFilename):

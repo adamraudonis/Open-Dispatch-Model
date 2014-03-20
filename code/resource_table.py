@@ -24,7 +24,7 @@ def getYearlyLoads():
 
 
 def outputLoadResourceTable():
-	resources = resource_import.loadDictionary()
+	resources = importing.importToDictArray('PGE_Baseline.xlsx')
 
 	yearlyLoads = getYearlyLoads()
 
@@ -62,20 +62,19 @@ def outputLoadResourceTable():
 
 	rindex = 5
 	for resource in resources:
-		if 'Jan Capacity (MW)' in resource:
-			if len(resource['In-service date']) > 0 and len(resource['Retirement year']) > 0:
-				newname = resource['Type'] + '-' + resource['Name']
-				ws.write(rindex, 0, newname, normalS)
-				cindex = 1
-				for interval in yearlyLoads:
-					year = interval[0]
-					if year >= sToi(resource['In-service date']) and year < sToi(resource['Retirement year']):
-						ws.write(rindex, cindex, sToi(resource['Jan Capacity (MW)']), normalS)
-					else:
-						ws.write(rindex, cindex, 0, normalS)
-					cindex += 1
-				rindex += 1
-			print resource
+		if len(resource['In-service date']) > 0 and len(resource['Retirement year']) > 0:
+			newname = resource['Type'] + '-' + resource['Name']
+			ws.write(rindex, 0, newname, normalS)
+			cindex = 1
+			for interval in yearlyLoads:
+				year = interval[0]
+				if year >= sToi(resource['In-service date']) and year < sToi(resource['Retirement year']):
+					ws.write(rindex, cindex, sToi(resource['Rated Capacity (MW)']), normalS)
+				else:
+					ws.write(rindex, cindex, 0, normalS)
+				cindex += 1
+			rindex += 1
+		print resource
 
 	# Set Widths
 	ws.col(0).width = 4900

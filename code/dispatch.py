@@ -51,6 +51,7 @@ def add_renewables(dispatched_array, resources):
 				if resource['Name'] in wind_resource_map:
 					resource_curve = wind_resource_map[resource['Name']]
 				else:
+					print "Couldn't find %s wind resource" % resource['Name']
 					resource_curve = wind_resource_map.values()[0] # TODO
 				scaledValue = float(resource_curve[yearhour]) * int(float(resource['Rated Capacity (MW)']))
 				dispatched_resources['resources'].append([resource['Name'],resource['Type'].lower(),scaledValue])
@@ -68,6 +69,7 @@ def add_renewables(dispatched_array, resources):
 		dispatched_resources['Net'] = dispatched_resources['Load'] - power_generated
 
 		dispatched_resources['Renew'] = float(dispatched_resources['Net']) + 0
+
 		new_dispatched_array.append(dispatched_resources)
 
 		if yearhour == 8759:
@@ -315,6 +317,7 @@ def writeAllToCSV(dispatched_array, scenario_name):
 		#if resource[1] == 'gas':
 		header.append(resource[0])
 	outputArray.append(header)
+	pprint(header)
 
 	# header2 = []
 	# for resource in dispatched_array[0]['resources']:
